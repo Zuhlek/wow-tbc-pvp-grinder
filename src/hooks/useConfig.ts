@@ -15,19 +15,14 @@ interface UseConfigReturn {
   setConfig: (config: AppConfig) => void;
 }
 
-/**
- * Hook for managing application configuration with localStorage persistence.
- */
 export function useConfig(): UseConfigReturn {
   const [config, setConfigInternal, clearConfig] = useLocalStorage<AppConfig>(
     STORAGE_KEY,
     createDefaultConfig()
   );
 
-  // Validate current config
   const validation = validateConfig(config);
 
-  // Update partial config
   const updateConfig = useCallback(
     (updates: Partial<AppConfig>) => {
       setConfigInternal((prev) => ({
@@ -38,7 +33,6 @@ export function useConfig(): UseConfigReturn {
     [setConfigInternal]
   );
 
-  // Update BG honor values
   const updateBGHonor = useCallback(
     (bg: keyof BGHonorConfig, values: Partial<BGHonorValues>) => {
       setConfigInternal((prev) => ({
@@ -55,13 +49,11 @@ export function useConfig(): UseConfigReturn {
     [setConfigInternal]
   );
 
-  // Reset to default config
   const resetConfig = useCallback(() => {
     clearConfig();
     setConfigInternal(createDefaultConfig());
   }, [clearConfig, setConfigInternal]);
 
-  // Set entire config (for import)
   const setConfig = useCallback(
     (newConfig: AppConfig) => {
       setConfigInternal(newConfig);

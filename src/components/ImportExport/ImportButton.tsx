@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import type { AppConfig, DayEntry } from '../../types';
-import { migrate } from '../../utils/migration';
+import { parseImportData } from '../../utils/migration';
 import './ImportExport.css';
 
 interface ImportButtonProps {
@@ -24,7 +24,7 @@ export function ImportButton({ onImport }: ImportButtonProps) {
     try {
       const text = await file.text();
       const data = JSON.parse(text);
-      const result = migrate(data);
+      const result = parseImportData(data);
 
       if (result.success && result.data) {
         onImport(result.data.config, result.data.entries);
