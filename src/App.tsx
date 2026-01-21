@@ -1,3 +1,5 @@
+import { useCallback } from 'react';
+import type { AppConfig, DayEntry } from './types';
 import { Layout } from './components/Layout';
 import {
   TimelineInput,
@@ -20,16 +22,36 @@ function App() {
     validation,
     updateConfig,
     updateBGHonor,
+    setConfig,
+    resetConfig,
   } = useConfig();
 
-  const { entries, setOverride, clearOverride } = useEntries();
+  const { entries, setOverride, clearOverride, setEntries, clearAllOverrides } = useEntries();
   const { results, dailyGamesRequired, goalDay, isValid } = useForecast(
     config,
     entries
   );
 
+  const handleImport = useCallback(
+    (importedConfig: AppConfig, importedEntries: DayEntry[]) => {
+      setConfig(importedConfig);
+      setEntries(importedEntries);
+    },
+    [setConfig, setEntries]
+  );
+
+  const handleReset = useCallback(() => {
+    resetConfig();
+    clearAllOverrides();
+  }, [resetConfig, clearAllOverrides]);
+
   return (
-    <Layout>
+    <Layout
+      config={config}
+      entries={entries}
+      onImport={handleImport}
+      onReset={handleReset}
+    >
       <div className="app-grid">
         <div className="config-column">
           <TimelineInput

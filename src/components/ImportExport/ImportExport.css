@@ -1,0 +1,59 @@
+.import-export-btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.import-export-btn:hover {
+  background-color: var(--color-bg-input);
+  border-color: var(--color-text-muted);
+}
+
+.import-wrapper {
+  position: relative;
+}
+
+.import-error {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 100;
+
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--color-danger);
+  background-color: var(--color-bg-panel);
+  border: 1px solid var(--color-danger);
+  border-radius: 6px;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dismiss-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--color-danger);
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.dismiss-btn:hover {
+  opacity: 1;
+}

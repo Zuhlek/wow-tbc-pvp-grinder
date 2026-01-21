@@ -750,7 +750,7 @@ describe('validateConfig', () => {
   });
 
   it('rejects invalid phase', () => {
-    const result = validateConfig({ ...validConfig, phase: 'invalid' as any });
+    const result = validateConfig({ ...validConfig, phase: 'invalid' as unknown as 'classic' });
     expect(result.valid).toBe(false);
     expect(result.errors).toContain('phase must be "classic" or "tbc"');
   });
