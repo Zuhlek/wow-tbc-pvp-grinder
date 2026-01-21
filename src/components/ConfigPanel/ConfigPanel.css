@@ -1,0 +1,104 @@
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.config-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Small text under inputs */
+.panel small {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+}
+
+/* Checkbox row */
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-row input[type="checkbox"] {
+  margin: 0;
+}
+
+.checkbox-row label {
+  margin: 0;
+  font-size: 0.875rem;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* Slider with value display */
+.slider-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.slider-value {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+/* Phase settings table */
+.phase-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.phase-table th,
+.phase-table td {
+  padding: 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.phase-table th {
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.phase-table th:not(:first-child),
+.phase-table td:not(:first-child) {
+  text-align: center;
+}
+
+.phase-table input {
+  width: 80px;
+  text-align: center;
+}
+
+.phase-table .badge {
+  margin-bottom: 0.25rem;
+}
+
+/* Error messages container */
+.error-messages {
+  margin-top: 0.5rem;
+}
+
+/* Number input width */
+input[type="number"] {
+  width: 100%;
+  max-width: 150px;
+}
+
+/* Full width inputs */
+input[type="date"] {
+  width: 100%;
+}

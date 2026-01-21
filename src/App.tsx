@@ -1,35 +1,168 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Layout } from './components/Layout';
+import {
+  TimelineInput,
+  GameSettingsInput,
+  MultiplierInput,
+  StartingStateInput,
+  TargetInput,
+} from './components/ConfigPanel';
+import { PhaseSettingsPanel } from './components/PhaseSettingsPanel';
+import { useConfig } from './hooks/useConfig';
+import { useEntries } from './hooks/useEntries';
+import { useForecast } from './hooks/useForecast';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const {
+    config,
+    validation,
+    updateConfig,
+    updateClassicConfig,
+    updateTbcConfig,
+  } = useConfig();
+
+  const { entries } = useEntries();
+  const { dailyGamesRequired, goalDay, isValid } = useForecast(config, entries);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <Layout>
+      <div className="app-grid">
+        <div className="config-column">
+          <TimelineInput
+            startDate={config.startDate}
+            tbcStartDate={config.tbcStartDate}
+            endDate={config.endDate}
+            onStartDateChange={(v) => updateConfig({ startDate: v })}
+            onTbcStartDateChange={(v) => updateConfig({ tbcStartDate: v })}
+            onEndDateChange={(v) => updateConfig({ endDate: v })}
+            errors={validation.errors}
+          />
+
+          <div className="config-row">
+            <GameSettingsInput
+              winRate={config.winRate}
+              marksThresholdPerBG={config.marksThresholdPerBG}
+              enableTurnIns={config.enableTurnIns}
+              onWinRateChange={(v) => updateConfig({ winRate: v })}
+              onMarksThresholdChange={(v) => updateConfig({ marksThresholdPerBG: v })}
+              onEnableTurnInsChange={(v) => updateConfig({ enableTurnIns: v })}
+              errors={validation.errors}
+            />
+
+            <MultiplierInput
+              bgHonorMult={config.bgHonorMult}
+              questHonorMult={config.questHonorMult}
+              onBgHonorMultChange={(v) => updateConfig({ bgHonorMult: v })}
+              onQuestHonorMultChange={(v) => updateConfig({ questHonorMult: v })}
+              errors={validation.errors}
+            />
+          </div>
+
+          <PhaseSettingsPanel
+            classicConfig={config.classicConfig}
+            tbcConfig={config.tbcConfig}
+            onClassicChange={updateClassicConfig}
+            onTbcChange={updateTbcConfig}
+          />
+
+          <div className="config-row">
+            <StartingStateInput
+              startingHonor={config.startingHonor}
+              startingMarks={config.startingMarks}
+              onStartingHonorChange={(v) => updateConfig({ startingHonor: v })}
+              onStartingMarksChange={(v) => updateConfig({ startingMarks: v })}
+              errors={validation.errors}
+            />
+
+            <TargetInput
+              honorTarget={config.honorTarget}
+              onHonorTargetChange={(v) => updateConfig({ honorTarget: v })}
+              errors={validation.errors}
+            />
+          </div>
+        </div>
+
+        <div className="results-column">
+          <div className="panel summary-panel">
+            <h3 className="panel-title">Summary</h3>
+
+            {!isValid ? (
+              <div className="validation-errors">
+                <p className="text-danger">Configuration has errors:</p>
+                <ul>
+                  {validation.errors.map((error, i) => (
+                    <li key={i} className="text-danger">
+                      {error}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <div className="summary-content">
+                <div className="summary-row">
+                  <span className="summary-label">Honor Progress:</span>
+                  <span className="summary-value">
+                    {config.startingHonor.toLocaleString()} /{' '}
+                    {config.honorTarget.toLocaleString()}
+                  </span>
+                </div>
+
+                <div className="summary-row">
+                  <span className="summary-label">Remaining:</span>
+                  <span className="summary-value">
+                    {Math.max(
+                      0,
+                      config.honorTarget - config.startingHonor
+                    ).toLocaleString()}{' '}
+                    honor
+                  </span>
+                </div>
+
+                <div className="summary-row">
+                  <span className="summary-label">Starting Marks:</span>
+                  <span className="summary-value">{config.startingMarks}</span>
+                </div>
+
+                <hr />
+
+                <div className="summary-row highlight">
+                  <span className="summary-label">Required Games/Day:</span>
+                  <span className="summary-value">
+                    {dailyGamesRequired.toFixed(1)}
+                  </span>
+                </div>
+
+                {goalDay && (
+                  <div className="summary-row">
+                    <span className="summary-label">Goal Reached:</span>
+                    <span className="summary-value text-success">
+                      Day {goalDay.dayIndex} ({goalDay.date})
+                    </span>
+                  </div>
+                )}
+
+                {!goalDay && (
+                  <div className="summary-row">
+                    <span className="summary-label">Goal Reached:</span>
+                    <span className="summary-value text-warning">
+                      Not within timeframe
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="panel">
+            <h3 className="panel-title">Forecast</h3>
+            <p className="text-muted">
+              Forecast table will be added in Sprint 5
+            </p>
+          </div>
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </Layout>
+  );
 }
 
-export default App
+export default App;
