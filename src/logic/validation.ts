@@ -1,31 +1,15 @@
-import type { AppConfig, PhaseConfig, ValidationResult } from '../types';
+import type { AppConfig, ValidationResult, BGHonorValues } from '../types';
 
 /**
- * Validate a PhaseConfig and return any errors.
+ * Validate BGHonorValues for a single BG.
  */
-function validatePhaseConfig(phase: PhaseConfig, prefix: string): string[] {
-  const errors: string[] = [];
-
-  if (phase.honorPerWin < 0) {
-    errors.push('honorPerWin must be >= 0');
+function validateBGHonor(bgHonor: BGHonorValues, bgName: string, errors: string[]): void {
+  if (bgHonor.honorPerWin < 0) {
+    errors.push(`${bgName}.honorPerWin must be >= 0`);
   }
-  if (phase.honorPerLoss < 0) {
-    errors.push('honorPerLoss must be >= 0');
+  if (bgHonor.honorPerLoss < 0) {
+    errors.push(`${bgName}.honorPerLoss must be >= 0`);
   }
-  if (phase.dailyQuestHonorBase < 0) {
-    errors.push('dailyQuestHonorBase must be >= 0');
-  }
-  if (phase.turnInHonorBase < 0) {
-    errors.push('turnInHonorBase must be >= 0');
-  }
-  if (phase.numBGs <= 0) {
-    errors.push(`${prefix}.numBGs must be > 0`);
-  }
-  if (phase.marksPerTurnIn <= 0) {
-    errors.push(`${prefix}.marksPerTurnIn must be > 0`);
-  }
-
-  return errors;
 }
 
 /**
@@ -33,6 +17,11 @@ function validatePhaseConfig(phase: PhaseConfig, prefix: string): string[] {
  */
 export function validateConfig(config: AppConfig): ValidationResult {
   const errors: string[] = [];
+
+  // Phase validation
+  if (config.phase !== 'classic' && config.phase !== 'tbc') {
+    errors.push('phase must be "classic" or "tbc"');
+  }
 
   // Win rate validation
   if (config.winRate < 0 || config.winRate > 1) {
@@ -50,12 +39,6 @@ export function validateConfig(config: AppConfig): ValidationResult {
   // Date validation
   if (config.startDate > config.endDate) {
     errors.push('endDate must be after or equal to startDate');
-  }
-  if (config.tbcStartDate < config.startDate) {
-    errors.push('tbcStartDate must be after or equal to startDate');
-  }
-  if (config.tbcStartDate > config.endDate) {
-    errors.push('tbcStartDate must be before or equal to endDate');
   }
 
   // Starting values validation
@@ -76,9 +59,23 @@ export function validateConfig(config: AppConfig): ValidationResult {
     errors.push('marksThresholdPerBG must be >= 0');
   }
 
-  // Phase config validation
-  errors.push(...validatePhaseConfig(config.classicConfig, 'classicConfig'));
-  errors.push(...validatePhaseConfig(config.tbcConfig, 'tbcConfig'));
+  // Per-BG honor values validation
+  if (config.bgHonor) {
+    validateBGHonor(config.bgHonor.wsg, 'wsg', errors);
+    validateBGHonor(config.bgHonor.ab, 'ab', errors);
+    validateBGHonor(config.bgHonor.av, 'av', errors);
+    validateBGHonor(config.bgHonor.eots, 'eots', errors);
+  } else {
+    errors.push('bgHonor configuration is required');
+  }
+
+  // Quest honor values validation
+  if (config.dailyQuestHonor < 0) {
+    errors.push('dailyQuestHonor must be >= 0');
+  }
+  if (config.turnInHonor < 0) {
+    errors.push('turnInHonor must be >= 0');
+  }
 
   return {
     valid: errors.length === 0,

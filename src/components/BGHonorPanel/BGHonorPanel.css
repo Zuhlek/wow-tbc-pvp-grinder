@@ -1,0 +1,74 @@
+.panel-subtitle {
+  font-size: 0.75rem;
+  font-weight: normal;
+  color: var(--color-text-muted);
+  margin-left: 0.5rem;
+}
+
+.bg-honor-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.bg-honor-header {
+  display: grid;
+  grid-template-columns: 1fr 80px 80px;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0 0.25rem;
+}
+
+.bg-honor-row {
+  display: grid;
+  grid-template-columns: 1fr 80px 80px;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.bg-honor-row.inactive {
+  opacity: 0.5;
+}
+
+.bg-honor-row input {
+  width: 100%;
+  padding: 0.375rem 0.5rem;
+}
+
+.bg-honor-row input:disabled {
+  background-color: var(--color-bg-input);
+  cursor: not-allowed;
+}
+
+.bg-name {
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.inactive-badge {
+  font-size: 0.625rem;
+  padding: 0.125rem 0.375rem;
+  background-color: var(--color-bg-input);
+  border-radius: 4px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+@media (max-width: 640px) {
+  .bg-honor-header,
+  .bg-honor-row {
+    grid-template-columns: 1fr 60px 60px;
+  }
+
+  .bg-honor-row input {
+    padding: 0.25rem;
+    font-size: 0.875rem;
+  }
+}

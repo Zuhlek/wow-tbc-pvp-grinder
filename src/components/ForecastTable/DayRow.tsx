@@ -30,11 +30,6 @@ export function DayRow({ result, enableTurnIns, isExpanded, onClick }: DayRowPro
         {result.overrideApplied && <span className="override-indicator">*</span>}
       </td>
       <td className="date-cell">{formatDate(result.date)}</td>
-      <td className="phase-cell">
-        <span className={`badge badge-${result.phase}`}>
-          {result.phase === 'classic' ? 'CLA' : 'TBC'}
-        </span>
-      </td>
       <td className="text-right">{result.gamesPlanned.toFixed(1)}</td>
       <td className="text-right">+{Math.round(result.expectedMarksGained)}</td>
       <td className="text-right">{Math.round(result.marksAfterTurnIn)}</td>

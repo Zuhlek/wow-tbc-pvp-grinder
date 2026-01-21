@@ -1,0 +1,1 @@
+export { BGHonorPanel } from './BGHonorPanel';

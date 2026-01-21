@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import type { AppConfig, PhaseConfig, DayResult, DayEntry } from '../../types';
+import type { AppConfig, DayResult, DayEntry, BGHonorConfig } from '../../types';
 import {
   expectedMarksPerGame,
+  expectedHonorForBG,
   expectedHonorPerGame,
   computeTurnInSets,
-  getPhaseForDate,
   computeDayResult,
   computeForecast,
   findGoalReachedDay,
@@ -12,33 +12,29 @@ import {
 } from '../calculations';
 import { validateConfig } from '../validation';
 
-// Test fixtures
-const classicConfig: PhaseConfig = {
-  name: 'classic',
-  numBGs: 3,
-  marksPerTurnIn: 3,
-  honorPerWin: 200,
-  honorPerLoss: 100,
-  dailyQuestHonorBase: 419,
-  turnInHonorBase: 314,
+// Default BG honor values based on observed data
+const defaultBGHonor: BGHonorConfig = {
+  wsg: { honorPerWin: 785, honorPerLoss: 271 },
+  ab: { honorPerWin: 626, honorPerLoss: 318 },
+  av: { honorPerWin: 687, honorPerLoss: 374 },
+  eots: { honorPerWin: 700, honorPerLoss: 350 }, // Estimated for TBC
 };
 
-const tbcConfig: PhaseConfig = {
-  name: 'tbc',
-  numBGs: 4,
-  marksPerTurnIn: 4,
-  honorPerWin: 300,
-  honorPerLoss: 150,
-  dailyQuestHonorBase: 600,
-  turnInHonorBase: 400,
+// Simple BG honor for easier test calculations
+const simpleBGHonor: BGHonorConfig = {
+  wsg: { honorPerWin: 200, honorPerLoss: 100 },
+  ab: { honorPerWin: 200, honorPerLoss: 100 },
+  av: { honorPerWin: 200, honorPerLoss: 100 },
+  eots: { honorPerWin: 200, honorPerLoss: 100 },
 };
 
 const validConfig: AppConfig = {
   startDate: '2024-01-18',
-  tbcStartDate: '2024-01-20',
   endDate: '2024-02-15',
-  classicConfig,
-  tbcConfig,
+  phase: 'classic',
+  bgHonor: simpleBGHonor,
+  dailyQuestHonor: 419,
+  turnInHonor: 314,
   winRate: 0.5,
   marksThresholdPerBG: 50,
   enableTurnIns: true,
@@ -71,39 +67,65 @@ describe('expectedMarksPerGame', () => {
 });
 
 // =============================================================================
-// T2: expectedHonorPerGame(phase, winRate)
+// T2: expectedHonorForBG and expectedHonorPerGame
 // =============================================================================
-describe('expectedHonorPerGame', () => {
-  const phase: PhaseConfig = {
-    name: 'classic',
-    numBGs: 3,
-    marksPerTurnIn: 3,
-    honorPerWin: 200,
-    honorPerLoss: 100,
-    dailyQuestHonorBase: 419,
-    turnInHonorBase: 314,
-  };
+describe('expectedHonorForBG', () => {
+  const bgHonor = { honorPerWin: 200, honorPerLoss: 100 };
 
   it('T2.1: 50% WR averages win/loss honor', () => {
-    expect(expectedHonorPerGame(phase, 0.5)).toBe(150);
+    expect(expectedHonorForBG(bgHonor, 0.5)).toBe(150);
   });
 
   it('T2.2: 100% WR returns win honor', () => {
-    expect(expectedHonorPerGame(phase, 1.0)).toBe(200);
+    expect(expectedHonorForBG(bgHonor, 1.0)).toBe(200);
   });
 
   it('T2.3: 0% WR returns loss honor', () => {
-    expect(expectedHonorPerGame(phase, 0.0)).toBe(100);
+    expect(expectedHonorForBG(bgHonor, 0.0)).toBe(100);
   });
 
   it('T2.4: 65% WR with higher honor BG', () => {
-    const highHonorPhase: PhaseConfig = {
-      ...phase,
-      honorPerWin: 400,
-      honorPerLoss: 200,
-    };
+    const highHonorBG = { honorPerWin: 400, honorPerLoss: 200 };
     // 0.65 * 400 + 0.35 * 200 = 260 + 70 = 330
-    expect(expectedHonorPerGame(highHonorPhase, 0.65)).toBe(330);
+    expect(expectedHonorForBG(highHonorBG, 0.65)).toBe(330);
+  });
+});
+
+describe('expectedHonorPerGame', () => {
+  it('calculates mean honor across Classic BGs (3 BGs)', () => {
+    const config: AppConfig = {
+      ...validConfig,
+      phase: 'classic',
+      bgHonor: {
+        wsg: { honorPerWin: 300, honorPerLoss: 100 },
+        ab: { honorPerWin: 200, honorPerLoss: 100 },
+        av: { honorPerWin: 200, honorPerLoss: 100 },
+        eots: { honorPerWin: 200, honorPerLoss: 100 },
+      },
+    };
+    // 50% WR: WSG=200, AB=150, AV=150 -> mean = (200+150+150)/3 = 166.67
+    expect(expectedHonorPerGame(config, 0.5)).toBeCloseTo(166.67, 1);
+  });
+
+  it('calculates mean honor across TBC BGs (4 BGs)', () => {
+    const config: AppConfig = {
+      ...validConfig,
+      phase: 'tbc',
+      bgHonor: {
+        wsg: { honorPerWin: 200, honorPerLoss: 100 },
+        ab: { honorPerWin: 200, honorPerLoss: 100 },
+        av: { honorPerWin: 200, honorPerLoss: 100 },
+        eots: { honorPerWin: 400, honorPerLoss: 200 },
+      },
+    };
+    // 50% WR: WSG=150, AB=150, AV=150, EotS=300 -> mean = (150+150+150+300)/4 = 187.5
+    expect(expectedHonorPerGame(config, 0.5)).toBe(187.5);
+  });
+
+  it('uses uniform values correctly', () => {
+    const config: AppConfig = { ...validConfig, phase: 'classic' };
+    // All BGs have 200 win, 100 loss. 50% WR = 150 for each
+    expect(expectedHonorPerGame(config, 0.5)).toBe(150);
   });
 });
 
@@ -148,45 +170,20 @@ describe('computeTurnInSets', () => {
 });
 
 // =============================================================================
-// T4: getPhaseForDate(date, config)
-// =============================================================================
-describe('getPhaseForDate', () => {
-  const config: AppConfig = {
-    ...validConfig,
-    tbcStartDate: '2024-01-20',
-  };
-
-  it('T4.1: returns classic before TBC date', () => {
-    expect(getPhaseForDate('2024-01-15', config).name).toBe('classic');
-  });
-
-  it('T4.2: returns tbc on TBC start date', () => {
-    expect(getPhaseForDate('2024-01-20', config).name).toBe('tbc');
-  });
-
-  it('T4.3: returns tbc after TBC date', () => {
-    expect(getPhaseForDate('2024-01-25', config).name).toBe('tbc');
-  });
-});
-
-// =============================================================================
 // T4b: computeRequiredDailyGames(config)
 // =============================================================================
 describe('computeRequiredDailyGames', () => {
   const baseConfig: AppConfig = {
+    ...validConfig,
     startDate: '2024-01-01',
-    tbcStartDate: '2024-01-15', // all classic for simplicity
     endDate: '2024-01-10',
-    classicConfig,
-    tbcConfig,
+    phase: 'classic',
     startingHonor: 0,
     startingMarks: 0,
     honorTarget: 20000,
     winRate: 0.5,
     marksThresholdPerBG: 50,
     enableTurnIns: true,
-    bgHonorMult: 1.0,
-    questHonorMult: 1.0,
   };
 
   it('T4b.1: calculates games needed for target', () => {
@@ -223,14 +220,12 @@ describe('computeRequiredDailyGames', () => {
   });
 
   it('T4b.6: handles very high honor targets requiring many games', () => {
-    // This tests the upper bound expansion logic (lines 227-229)
     const config: AppConfig = {
       ...baseConfig,
-      honorTarget: 500000, // Very high target
-      endDate: '2024-01-05', // Short time frame
+      honorTarget: 500000,
+      endDate: '2024-01-05',
     };
     const games = computeRequiredDailyGames(config);
-    // Should require many games per day
     expect(games).toBeGreaterThan(100);
     // Verify it actually reaches the target
     const { results } = computeForecast(config, [], games);
@@ -246,7 +241,7 @@ describe('computeDayResult', () => {
   it('T5.1: Classic day with no turn-in', () => {
     const config: AppConfig = {
       ...validConfig,
-      tbcStartDate: '2024-02-01', // ensure classic
+      phase: 'classic',
       winRate: 0.5,
       marksThresholdPerBG: 50, // reserve = 150
       bgHonorMult: 1.0,
@@ -255,7 +250,6 @@ describe('computeDayResult', () => {
 
     const result = computeDayResult(1, '2024-01-15', 0, 0, config, 10);
 
-    expect(result.phase).toBe('classic');
     expect(result.expectedMarksGained).toBe(20); // 10 games × 2 marks
     expect(result.marksBeforeTurnIn).toBe(20); // 0 + 20
     expect(result.marksReserve).toBe(150); // 50 × 3
@@ -270,7 +264,7 @@ describe('computeDayResult', () => {
   it('T5.2: Classic day with turn-ins', () => {
     const config: AppConfig = {
       ...validConfig,
-      tbcStartDate: '2024-02-01',
+      phase: 'classic',
       winRate: 0.5,
       marksThresholdPerBG: 50,
       bgHonorMult: 1.0,
@@ -289,27 +283,25 @@ describe('computeDayResult', () => {
     expect(result.honorFromTurnIns).toBe(3140); // 10 × 314 × 1.0
   });
 
-  it('T5.3: TBC day uses TBC config', () => {
+  it('T5.3: TBC uses 4 BGs for reserve', () => {
     const config: AppConfig = {
       ...validConfig,
-      tbcStartDate: '2024-01-20',
+      phase: 'tbc',
       winRate: 0.5,
       marksThresholdPerBG: 50, // reserve = 200 (4 BGs)
     };
 
     const result = computeDayResult(1, '2024-01-25', 0, 220, config, 10);
 
-    expect(result.phase).toBe('tbc');
     expect(result.marksReserve).toBe(200); // 50 × 4
     // marks before: 220 + 20 = 240, excess = 40, sets = 40/4 = 10
     expect(result.turnInSets).toBe(10);
-    expect(result.honorFromDailyQuest).toBe(600);
   });
 
   it('T5.4: Multipliers apply to correct honor sources', () => {
     const config: AppConfig = {
       ...validConfig,
-      tbcStartDate: '2024-02-01',
+      phase: 'classic',
       bgHonorMult: 1.0,
       questHonorMult: 2.5, // Prepatch bonus
       winRate: 0.5,
@@ -326,10 +318,7 @@ describe('computeDayResult', () => {
   });
 
   it('T5.5: Override applies to honor', () => {
-    const config: AppConfig = {
-      ...validConfig,
-      tbcStartDate: '2024-02-01',
-    };
+    const config: AppConfig = { ...validConfig };
 
     const overrides = { actualHonorEndOfDay: 5000 };
     const result = computeDayResult(1, '2024-01-15', 0, 0, config, 10, overrides);
@@ -339,10 +328,7 @@ describe('computeDayResult', () => {
   });
 
   it('T5.6: Override applies to marks', () => {
-    const config: AppConfig = {
-      ...validConfig,
-      tbcStartDate: '2024-02-01',
-    };
+    const config: AppConfig = { ...validConfig };
 
     const overrides = { actualMarksEndOfDay: 100 };
     const result = computeDayResult(1, '2024-01-15', 0, 0, config, 10, overrides);
@@ -353,45 +339,31 @@ describe('computeDayResult', () => {
 });
 
 // =============================================================================
-// T6: computeForecast() - Phase Transition
+// T6: computeForecast() - Phase Selection
 // =============================================================================
-describe('computeForecast - phase transition', () => {
-  it('T6.1: forecast transitions from Classic to TBC', () => {
+describe('computeForecast - phase selection', () => {
+  it('T6.1: Classic phase uses 3 BGs for reserve', () => {
     const config: AppConfig = {
       ...validConfig,
-      startDate: '2024-01-18',
-      tbcStartDate: '2024-01-20',
-      endDate: '2024-01-22',
-    };
-
-    const { results } = computeForecast(config, [], 10);
-
-    expect(results[0].phase).toBe('classic'); // Jan 18
-    expect(results[1].phase).toBe('classic'); // Jan 19
-    expect(results[2].phase).toBe('tbc'); // Jan 20
-    expect(results[3].phase).toBe('tbc'); // Jan 21
-    expect(results[4].phase).toBe('tbc'); // Jan 22
-  });
-
-  it('T6.2: marks reserve increases at TBC transition', () => {
-    const config: AppConfig = {
-      ...validConfig,
-      startDate: '2024-01-18',
-      tbcStartDate: '2024-01-20',
-      endDate: '2024-01-22',
+      phase: 'classic',
       marksThresholdPerBG: 50,
     };
 
     const { results } = computeForecast(config, [], 10);
 
-    // Find last classic day and first TBC day
-    const lastClassic = results.find(
-      (r, i) => r.phase === 'classic' && results[i + 1]?.phase === 'tbc'
-    );
-    const firstTbc = results.find((r) => r.phase === 'tbc');
+    expect(results[0].marksReserve).toBe(150); // 50 × 3
+  });
 
-    expect(lastClassic?.marksReserve).toBe(150); // 50 × 3
-    expect(firstTbc?.marksReserve).toBe(200); // 50 × 4
+  it('T6.2: TBC phase uses 4 BGs for reserve', () => {
+    const config: AppConfig = {
+      ...validConfig,
+      phase: 'tbc',
+      marksThresholdPerBG: 50,
+    };
+
+    const { results } = computeForecast(config, [], 10);
+
+    expect(results[0].marksReserve).toBe(200); // 50 × 4
   });
 });
 
@@ -499,10 +471,7 @@ describe('findGoalReachedDay', () => {
 // =============================================================================
 describe('Edge Cases', () => {
   it('T9.1: 0 games still earns daily quest honor', () => {
-    const config: AppConfig = {
-      ...validConfig,
-      tbcStartDate: '2024-02-01',
-    };
+    const config: AppConfig = { ...validConfig };
 
     const result = computeDayResult(1, '2024-01-15', 0, 0, config, 0);
 
@@ -513,11 +482,7 @@ describe('Edge Cases', () => {
   });
 
   it('T9.2: 0% winrate gives 1 mark/game and loss honor only', () => {
-    const config: AppConfig = {
-      ...validConfig,
-      tbcStartDate: '2024-02-01',
-      winRate: 0,
-    };
+    const config: AppConfig = { ...validConfig, winRate: 0 };
 
     const result = computeDayResult(1, '2024-01-15', 0, 0, config, 10);
 
@@ -526,11 +491,7 @@ describe('Edge Cases', () => {
   });
 
   it('T9.3: 100% winrate gives 3 marks/game and win honor only', () => {
-    const config: AppConfig = {
-      ...validConfig,
-      tbcStartDate: '2024-02-01',
-      winRate: 1,
-    };
+    const config: AppConfig = { ...validConfig, winRate: 1 };
 
     const result = computeDayResult(1, '2024-01-15', 0, 0, config, 10);
 
@@ -541,7 +502,6 @@ describe('Edge Cases', () => {
   it('T9.4: threshold 0 allows full turn-in', () => {
     const config: AppConfig = {
       ...validConfig,
-      tbcStartDate: '2024-02-01',
       marksThresholdPerBG: 0, // reserve = 0
     };
 
@@ -556,7 +516,6 @@ describe('Edge Cases', () => {
   it('T9.5: start with marks > reserve allows immediate turn-ins', () => {
     const config: AppConfig = {
       ...validConfig,
-      tbcStartDate: '2024-02-01',
       startingMarks: 200, // > 150 reserve
       marksThresholdPerBG: 50,
     };
@@ -572,7 +531,6 @@ describe('Edge Cases', () => {
       ...validConfig,
       startDate: '2024-01-18',
       endDate: '2024-01-22',
-      tbcStartDate: '2024-02-01',
       startingMarks: 200,
       marksThresholdPerBG: 50, // reserve = 150
     };
@@ -593,7 +551,6 @@ describe('Edge Cases', () => {
       ...validConfig,
       startDate: '2024-01-18',
       endDate: '2024-01-18',
-      tbcStartDate: '2024-02-01',
     };
 
     const { results } = computeForecast(config, [], 10);
@@ -605,7 +562,6 @@ describe('Edge Cases', () => {
   it('T9.11: enableTurnIns=false prevents all turn-ins', () => {
     const config: AppConfig = {
       ...validConfig,
-      tbcStartDate: '2024-02-01',
       enableTurnIns: false,
       startingMarks: 200,
     };
@@ -699,40 +655,40 @@ describe('validateConfig', () => {
     expect(result.errors).toContain('winRate must be between 0 and 1');
   });
 
-  it('rejects negative honor values', () => {
+  it('rejects negative BG honor values', () => {
     const result = validateConfig({
       ...validConfig,
-      classicConfig: { ...validConfig.classicConfig, honorPerWin: -100 },
+      bgHonor: {
+        ...validConfig.bgHonor,
+        wsg: { honorPerWin: -100, honorPerLoss: 100 },
+      },
     });
     expect(result.valid).toBe(false);
-    expect(result.errors).toContain('honorPerWin must be >= 0');
+    expect(result.errors).toContain('wsg.honorPerWin must be >= 0');
   });
 
   it('rejects negative honorPerLoss', () => {
     const result = validateConfig({
       ...validConfig,
-      classicConfig: { ...validConfig.classicConfig, honorPerLoss: -100 },
+      bgHonor: {
+        ...validConfig.bgHonor,
+        ab: { honorPerWin: 200, honorPerLoss: -100 },
+      },
     });
     expect(result.valid).toBe(false);
-    expect(result.errors).toContain('honorPerLoss must be >= 0');
+    expect(result.errors).toContain('ab.honorPerLoss must be >= 0');
   });
 
-  it('rejects negative dailyQuestHonorBase', () => {
-    const result = validateConfig({
-      ...validConfig,
-      classicConfig: { ...validConfig.classicConfig, dailyQuestHonorBase: -100 },
-    });
+  it('rejects negative dailyQuestHonor', () => {
+    const result = validateConfig({ ...validConfig, dailyQuestHonor: -100 });
     expect(result.valid).toBe(false);
-    expect(result.errors).toContain('dailyQuestHonorBase must be >= 0');
+    expect(result.errors).toContain('dailyQuestHonor must be >= 0');
   });
 
-  it('rejects negative turnInHonorBase', () => {
-    const result = validateConfig({
-      ...validConfig,
-      classicConfig: { ...validConfig.classicConfig, turnInHonorBase: -100 },
-    });
+  it('rejects negative turnInHonor', () => {
+    const result = validateConfig({ ...validConfig, turnInHonor: -100 });
     expect(result.valid).toBe(false);
-    expect(result.errors).toContain('turnInHonorBase must be >= 0');
+    expect(result.errors).toContain('turnInHonor must be >= 0');
   });
 
   it('rejects bgHonorMult <= 0', () => {
@@ -761,26 +717,6 @@ describe('validateConfig', () => {
     });
     expect(result.valid).toBe(false);
     expect(result.errors).toContain('endDate must be after or equal to startDate');
-  });
-
-  it('rejects tbcStartDate before startDate', () => {
-    const result = validateConfig({
-      ...validConfig,
-      startDate: '2024-01-20',
-      tbcStartDate: '2024-01-15',
-    });
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain('tbcStartDate must be after or equal to startDate');
-  });
-
-  it('rejects tbcStartDate after endDate', () => {
-    const result = validateConfig({
-      ...validConfig,
-      tbcStartDate: '2024-02-20',
-      endDate: '2024-02-15',
-    });
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain('tbcStartDate must be before or equal to endDate');
   });
 
   it('rejects negative startingHonor', () => {
@@ -813,6 +749,12 @@ describe('validateConfig', () => {
     expect(result.errors).toContain('marksThresholdPerBG must be >= 0');
   });
 
+  it('rejects invalid phase', () => {
+    const result = validateConfig({ ...validConfig, phase: 'invalid' as any });
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('phase must be "classic" or "tbc"');
+  });
+
   it('accepts enableTurnIns = false', () => {
     const result = validateConfig({ ...validConfig, enableTurnIns: false });
     expect(result.valid).toBe(true);
@@ -828,27 +770,45 @@ describe('validateConfig', () => {
     const result = validateConfig({
       ...validConfig,
       startDate: '2024-01-18',
-      tbcStartDate: '2024-01-18',
       endDate: '2024-01-18',
     });
     expect(result.valid).toBe(true);
   });
+});
 
-  it('rejects numBGs <= 0', () => {
-    const result = validateConfig({
+// =============================================================================
+// T11: Per-BG Honor with real values
+// =============================================================================
+describe('Per-BG Honor with realistic values', () => {
+  it('calculates mean honor with real WSG/AB/AV values (Classic)', () => {
+    const config: AppConfig = {
       ...validConfig,
-      classicConfig: { ...validConfig.classicConfig, numBGs: 0 },
-    });
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain('classicConfig.numBGs must be > 0');
+      phase: 'classic',
+      bgHonor: defaultBGHonor,
+      winRate: 0.5,
+    };
+
+    // WSG: 0.5*785 + 0.5*271 = 528
+    // AB: 0.5*626 + 0.5*318 = 472
+    // AV: 0.5*687 + 0.5*374 = 530.5
+    // Mean: (528 + 472 + 530.5) / 3 = 510.17
+    const honor = expectedHonorPerGame(config, 0.5);
+    expect(honor).toBeCloseTo(510.17, 0);
   });
 
-  it('rejects marksPerTurnIn <= 0', () => {
-    const result = validateConfig({
+  it('calculates mean honor with real values at 65% winrate', () => {
+    const config: AppConfig = {
       ...validConfig,
-      tbcConfig: { ...validConfig.tbcConfig, marksPerTurnIn: 0 },
-    });
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain('tbcConfig.marksPerTurnIn must be > 0');
+      phase: 'classic',
+      bgHonor: defaultBGHonor,
+      winRate: 0.65,
+    };
+
+    // WSG: 0.65*785 + 0.35*271 = 510.25 + 94.85 = 605.1
+    // AB: 0.65*626 + 0.35*318 = 406.9 + 111.3 = 518.2
+    // AV: 0.65*687 + 0.35*374 = 446.55 + 130.9 = 577.45
+    // Mean: (605.1 + 518.2 + 577.45) / 3 = 566.92
+    const honor = expectedHonorPerGame(config, 0.65);
+    expect(honor).toBeCloseTo(566.92, 0);
   });
 });

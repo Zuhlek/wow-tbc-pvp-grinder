@@ -6,7 +6,7 @@ import {
   StartingStateInput,
   TargetInput,
 } from './components/ConfigPanel';
-import { PhaseSettingsPanel } from './components/PhaseSettingsPanel';
+import { BGHonorPanel } from './components/BGHonorPanel';
 import { Summary } from './components/Summary';
 import { ForecastTable } from './components/ForecastTable';
 import { useConfig } from './hooks/useConfig';
@@ -19,8 +19,7 @@ function App() {
     config,
     validation,
     updateConfig,
-    updateClassicConfig,
-    updateTbcConfig,
+    updateBGHonor,
   } = useConfig();
 
   const { entries, setOverride, clearOverride } = useEntries();
@@ -35,11 +34,11 @@ function App() {
         <div className="config-column">
           <TimelineInput
             startDate={config.startDate}
-            tbcStartDate={config.tbcStartDate}
             endDate={config.endDate}
+            phase={config.phase}
             onStartDateChange={(v) => updateConfig({ startDate: v })}
-            onTbcStartDateChange={(v) => updateConfig({ tbcStartDate: v })}
             onEndDateChange={(v) => updateConfig({ endDate: v })}
+            onPhaseChange={(v) => updateConfig({ phase: v })}
             errors={validation.errors}
           />
 
@@ -48,11 +47,15 @@ function App() {
               winRate={config.winRate}
               marksThresholdPerBG={config.marksThresholdPerBG}
               enableTurnIns={config.enableTurnIns}
+              dailyQuestHonor={config.dailyQuestHonor}
+              turnInHonor={config.turnInHonor}
               onWinRateChange={(v) => updateConfig({ winRate: v })}
               onMarksThresholdChange={(v) =>
                 updateConfig({ marksThresholdPerBG: v })
               }
               onEnableTurnInsChange={(v) => updateConfig({ enableTurnIns: v })}
+              onDailyQuestHonorChange={(v) => updateConfig({ dailyQuestHonor: v })}
+              onTurnInHonorChange={(v) => updateConfig({ turnInHonor: v })}
               errors={validation.errors}
             />
 
@@ -65,11 +68,10 @@ function App() {
             />
           </div>
 
-          <PhaseSettingsPanel
-            classicConfig={config.classicConfig}
-            tbcConfig={config.tbcConfig}
-            onClassicChange={updateClassicConfig}
-            onTbcChange={updateTbcConfig}
+          <BGHonorPanel
+            bgHonor={config.bgHonor}
+            phase={config.phase}
+            onBGHonorChange={updateBGHonor}
           />
 
           <div className="config-row">

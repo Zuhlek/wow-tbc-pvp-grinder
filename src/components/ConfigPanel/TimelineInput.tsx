@@ -1,22 +1,23 @@
+import type { Phase } from '../../types';
 import './ConfigPanel.css';
 
 interface TimelineInputProps {
   startDate: string;
-  tbcStartDate: string;
   endDate: string;
+  phase: Phase;
   onStartDateChange: (value: string) => void;
-  onTbcStartDateChange: (value: string) => void;
   onEndDateChange: (value: string) => void;
+  onPhaseChange: (value: Phase) => void;
   errors?: string[];
 }
 
 export function TimelineInput({
   startDate,
-  tbcStartDate,
   endDate,
+  phase,
   onStartDateChange,
-  onTbcStartDateChange,
   onEndDateChange,
+  onPhaseChange,
   errors = [],
 }: TimelineInputProps) {
   const hasDateError = (field: string) =>
@@ -24,7 +25,7 @@ export function TimelineInput({
 
   return (
     <div className="panel">
-      <h3 className="panel-title">Timeline</h3>
+      <h3 className="panel-title">Timeline & Phase</h3>
 
       <div className="form-group">
         <label htmlFor="startDate">Start Date</label>
@@ -38,18 +39,6 @@ export function TimelineInput({
       </div>
 
       <div className="form-group">
-        <label htmlFor="tbcStartDate">TBC Start Date</label>
-        <input
-          type="date"
-          id="tbcStartDate"
-          value={tbcStartDate}
-          onChange={(e) => onTbcStartDateChange(e.target.value)}
-          className={hasDateError('tbcstartdate') ? 'input-error' : ''}
-        />
-        <small className="text-muted">Switch from 3 to 4 BGs</small>
-      </div>
-
-      <div className="form-group">
         <label htmlFor="endDate">End Date (Goal Deadline)</label>
         <input
           type="date"
@@ -58,6 +47,29 @@ export function TimelineInput({
           onChange={(e) => onEndDateChange(e.target.value)}
           className={hasDateError('enddate') ? 'input-error' : ''}
         />
+      </div>
+
+      <div className="form-group">
+        <label>Game Phase</label>
+        <div className="phase-toggle">
+          <button
+            type="button"
+            className={`phase-btn ${phase === 'classic' ? 'active' : ''}`}
+            onClick={() => onPhaseChange('classic')}
+          >
+            Classic (3 BGs)
+          </button>
+          <button
+            type="button"
+            className={`phase-btn ${phase === 'tbc' ? 'active' : ''}`}
+            onClick={() => onPhaseChange('tbc')}
+          >
+            TBC (4 BGs)
+          </button>
+        </div>
+        <small className="text-muted">
+          Affects marks per turn-in and BG count for reserve calculation
+        </small>
       </div>
 
       {errors.length > 0 && (
@@ -69,7 +81,7 @@ export function TimelineInput({
                 e.includes('date') ||
                 e.includes('startDate') ||
                 e.includes('endDate') ||
-                e.includes('tbcStartDate')
+                e.includes('phase')
             )
             .map((error, i) => (
               <p key={i} className="error-message">

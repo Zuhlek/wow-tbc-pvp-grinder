@@ -1,0 +1,84 @@
+import type { BGHonorConfig, BGHonorValues, Phase } from '../../types';
+import { PHASE_CONFIG } from '../../types';
+import './BGHonorPanel.css';
+
+interface BGHonorPanelProps {
+  bgHonor: BGHonorConfig;
+  phase: Phase;
+  onBGHonorChange: (bg: keyof BGHonorConfig, values: Partial<BGHonorValues>) => void;
+}
+
+const BG_NAMES: Record<keyof BGHonorConfig, string> = {
+  wsg: 'Warsong Gulch',
+  ab: 'Arathi Basin',
+  av: 'Alterac Valley',
+  eots: "Eye of the Storm",
+};
+
+const BG_SHORT_NAMES: Record<keyof BGHonorConfig, string> = {
+  wsg: 'WSG',
+  ab: 'AB',
+  av: 'AV',
+  eots: 'EotS',
+};
+
+export function BGHonorPanel({ bgHonor, phase, onBGHonorChange }: BGHonorPanelProps) {
+  const activeBGs = PHASE_CONFIG[phase].bgKeys;
+
+  return (
+    <div className="panel">
+      <h3 className="panel-title">
+        BG Honor Values
+        <span className="panel-subtitle">per battleground type</span>
+      </h3>
+
+      <div className="bg-honor-grid">
+        <div className="bg-honor-header">
+          <span>BG</span>
+          <span className="text-right">Win</span>
+          <span className="text-right">Loss</span>
+        </div>
+
+        {(Object.keys(bgHonor) as Array<keyof BGHonorConfig>).map((bg) => {
+          const isActive = (activeBGs as readonly string[]).includes(bg);
+
+          return (
+            <div
+              key={bg}
+              className={`bg-honor-row ${!isActive ? 'inactive' : ''}`}
+            >
+              <span className="bg-name" title={BG_NAMES[bg]}>
+                {BG_SHORT_NAMES[bg]}
+                {!isActive && <span className="inactive-badge">TBC</span>}
+              </span>
+              <input
+                type="number"
+                min="0"
+                value={bgHonor[bg].honorPerWin}
+                onChange={(e) =>
+                  onBGHonorChange(bg, { honorPerWin: Number(e.target.value) })
+                }
+                disabled={!isActive}
+                className="text-right"
+              />
+              <input
+                type="number"
+                min="0"
+                value={bgHonor[bg].honorPerLoss}
+                onChange={(e) =>
+                  onBGHonorChange(bg, { honorPerLoss: Number(e.target.value) })
+                }
+                disabled={!isActive}
+                className="text-right"
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      <small className="text-muted">
+        Honor per game is averaged across all active BGs ({activeBGs.length}) based on win rate
+      </small>
+    </div>
+  );
+}

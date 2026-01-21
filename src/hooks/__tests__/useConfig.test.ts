@@ -13,8 +13,8 @@ describe('useConfig', () => {
     expect(result.current.config).toBeDefined();
     expect(result.current.config.winRate).toBe(0.5);
     expect(result.current.config.honorTarget).toBe(75000);
-    expect(result.current.config.classicConfig.numBGs).toBe(3);
-    expect(result.current.config.tbcConfig.numBGs).toBe(4);
+    expect(result.current.config.phase).toBe('classic');
+    expect(result.current.config.bgHonor.wsg.honorPerWin).toBe(785);
   });
 
   it('validates config and returns validation result', () => {
@@ -37,31 +37,29 @@ describe('useConfig', () => {
     expect(result.current.config.marksThresholdPerBG).toBe(50);
   });
 
-  it('updateClassicConfig updates classic phase config', () => {
+  it('updateBGHonor updates BG honor values', () => {
     const { result } = renderHook(() => useConfig());
 
     act(() => {
-      result.current.updateClassicConfig({ honorPerWin: 250, honorPerLoss: 125 });
+      result.current.updateBGHonor('wsg', { honorPerWin: 800, honorPerLoss: 300 });
     });
 
-    expect(result.current.config.classicConfig.honorPerWin).toBe(250);
-    expect(result.current.config.classicConfig.honorPerLoss).toBe(125);
-    // Other classic values unchanged
-    expect(result.current.config.classicConfig.numBGs).toBe(3);
-    // TBC config unchanged
-    expect(result.current.config.tbcConfig.honorPerWin).toBe(300);
+    expect(result.current.config.bgHonor.wsg.honorPerWin).toBe(800);
+    expect(result.current.config.bgHonor.wsg.honorPerLoss).toBe(300);
+    // Other BGs unchanged
+    expect(result.current.config.bgHonor.ab.honorPerWin).toBe(626);
   });
 
-  it('updateTbcConfig updates TBC phase config', () => {
+  it('updateBGHonor updates partial BG honor values', () => {
     const { result } = renderHook(() => useConfig());
+    const originalLoss = result.current.config.bgHonor.av.honorPerLoss;
 
     act(() => {
-      result.current.updateTbcConfig({ dailyQuestHonorBase: 700 });
+      result.current.updateBGHonor('av', { honorPerWin: 700 });
     });
 
-    expect(result.current.config.tbcConfig.dailyQuestHonorBase).toBe(700);
-    // Classic config unchanged
-    expect(result.current.config.classicConfig.dailyQuestHonorBase).toBe(419);
+    expect(result.current.config.bgHonor.av.honorPerWin).toBe(700);
+    expect(result.current.config.bgHonor.av.honorPerLoss).toBe(originalLoss);
   });
 
   it('resetConfig resets to default', () => {

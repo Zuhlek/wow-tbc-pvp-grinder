@@ -1,4 +1,5 @@
 import type { AppConfig, DayResult } from '../../types';
+import { PHASE_CONFIG } from '../../types';
 import './Summary.css';
 
 interface SummaryProps {
@@ -24,10 +25,8 @@ export function Summary({
     (config.startingHonor / config.honorTarget) * 100
   );
 
-  // Calculate marks reserve based on current phase
-  const currentDate = new Date().toISOString().split('T')[0];
-  const isInTbc = currentDate >= config.tbcStartDate;
-  const numBGs = isInTbc ? config.tbcConfig.numBGs : config.classicConfig.numBGs;
+  // Calculate marks reserve based on phase
+  const { numBGs } = PHASE_CONFIG[config.phase];
   const marksReserve = config.marksThresholdPerBG * numBGs;
 
   // Check if goal is after end date

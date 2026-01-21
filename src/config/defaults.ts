@@ -1,4 +1,4 @@
-import type { AppConfig } from '../types';
+import type { AppConfig, BGHonorConfig } from '../types';
 
 /**
  * Get today's date in ISO format (YYYY-MM-DD)
@@ -8,41 +8,31 @@ function getToday(): string {
 }
 
 /**
- * Get a date N days from today in ISO format
+ * Default BG honor values based on observed data:
+ * WSG - Win: ~785, Loss: ~271
+ * AB  - Win: ~626, Loss: ~318
+ * AV  - Win: ~687, Loss: ~374
+ * EotS (TBC) - Estimated similar to other BGs
  */
-function getDaysFromToday(days: number): string {
-  const date = new Date();
-  date.setDate(date.getDate() + days);
-  return date.toISOString().split('T')[0];
-}
+export const DEFAULT_BG_HONOR: BGHonorConfig = {
+  wsg: { honorPerWin: 785, honorPerLoss: 271 },
+  ab: { honorPerWin: 626, honorPerLoss: 318 },
+  av: { honorPerWin: 687, honorPerLoss: 374 },
+  eots: { honorPerWin: 700, honorPerLoss: 350 },
+};
 
 /**
  * Default application configuration
  */
 export const DEFAULT_CONFIG: AppConfig = {
   startDate: getToday(),
-  tbcStartDate: getDaysFromToday(7), // TBC starts in 1 week by default
-  endDate: getDaysFromToday(28), // 4 weeks from now
+  endDate: '2026-02-05', // Default end date
 
-  classicConfig: {
-    name: 'classic',
-    numBGs: 3,
-    marksPerTurnIn: 3,
-    honorPerWin: 200,
-    honorPerLoss: 100,
-    dailyQuestHonorBase: 419,
-    turnInHonorBase: 314,
-  },
+  phase: 'classic',
+  bgHonor: DEFAULT_BG_HONOR,
 
-  tbcConfig: {
-    name: 'tbc',
-    numBGs: 4,
-    marksPerTurnIn: 4,
-    honorPerWin: 300,
-    honorPerLoss: 150,
-    dailyQuestHonorBase: 600,
-    turnInHonorBase: 400,
-  },
+  dailyQuestHonor: 419,
+  turnInHonor: 314,
 
   winRate: 0.5,
   marksThresholdPerBG: 50,
@@ -55,13 +45,11 @@ export const DEFAULT_CONFIG: AppConfig = {
 };
 
 /**
- * Create a fresh default config with current dates
+ * Create a fresh default config with current date as start date
  */
 export function createDefaultConfig(): AppConfig {
   return {
     ...DEFAULT_CONFIG,
     startDate: getToday(),
-    tbcStartDate: getDaysFromToday(7),
-    endDate: getDaysFromToday(28),
   };
 }

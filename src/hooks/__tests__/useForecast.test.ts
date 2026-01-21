@@ -1,30 +1,22 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useForecast } from '../useForecast';
-import type { AppConfig, DayEntry } from '../../types';
+import type { AppConfig, DayEntry, BGHonorConfig } from '../../types';
+
+const simpleBGHonor: BGHonorConfig = {
+  wsg: { honorPerWin: 200, honorPerLoss: 100 },
+  ab: { honorPerWin: 200, honorPerLoss: 100 },
+  av: { honorPerWin: 200, honorPerLoss: 100 },
+  eots: { honorPerWin: 200, honorPerLoss: 100 },
+};
 
 const validConfig: AppConfig = {
   startDate: '2024-01-18',
-  tbcStartDate: '2024-01-25',
   endDate: '2024-01-27',
-  classicConfig: {
-    name: 'classic',
-    numBGs: 3,
-    marksPerTurnIn: 3,
-    honorPerWin: 200,
-    honorPerLoss: 100,
-    dailyQuestHonorBase: 419,
-    turnInHonorBase: 314,
-  },
-  tbcConfig: {
-    name: 'tbc',
-    numBGs: 4,
-    marksPerTurnIn: 4,
-    honorPerWin: 300,
-    honorPerLoss: 150,
-    dailyQuestHonorBase: 600,
-    turnInHonorBase: 400,
-  },
+  phase: 'classic',
+  bgHonor: simpleBGHonor,
+  dailyQuestHonor: 419,
+  turnInHonor: 314,
   winRate: 0.5,
   marksThresholdPerBG: 50,
   enableTurnIns: true,
@@ -124,19 +116,25 @@ describe('useForecast', () => {
     expect(result.current.goalDay?.dayIndex).toBe(1);
   });
 
-  it('handles phase transitions correctly', () => {
-    const config: AppConfig = {
+  it('handles phase selection correctly', () => {
+    const classicConfig: AppConfig = {
       ...validConfig,
-      startDate: '2024-01-24',
-      tbcStartDate: '2024-01-25',
-      endDate: '2024-01-26',
+      phase: 'classic',
+      marksThresholdPerBG: 50,
     };
 
-    const { result } = renderHook(() => useForecast(config, []));
+    const tbcConfig: AppConfig = {
+      ...validConfig,
+      phase: 'tbc',
+      marksThresholdPerBG: 50,
+    };
 
-    expect(result.current.results[0].phase).toBe('classic');
-    expect(result.current.results[1].phase).toBe('tbc');
-    expect(result.current.results[2].phase).toBe('tbc');
+    const { result: classicResult } = renderHook(() => useForecast(classicConfig, []));
+    const { result: tbcResult } = renderHook(() => useForecast(tbcConfig, []));
+
+    // Classic uses 3 BGs, TBC uses 4 BGs for marks reserve
+    expect(classicResult.current.results[0].marksReserve).toBe(150); // 50 * 3
+    expect(tbcResult.current.results[0].marksReserve).toBe(200); // 50 * 4
   });
 
   it('recomputes results when config changes', () => {

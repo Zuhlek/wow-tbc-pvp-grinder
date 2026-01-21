@@ -56,7 +56,6 @@ export function ForecastTable({
             <tr>
               <th>Day</th>
               <th>Date</th>
-              <th>Phase</th>
               <th className="text-right">Games</th>
               <th className="text-right">+Marks</th>
               <th className="text-right">Marks</th>

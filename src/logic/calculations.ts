@@ -1,4 +1,5 @@
-import type { AppConfig, PhaseConfig, DayResult, DayOverrides, DayEntry } from '../types';
+import type { AppConfig, DayResult, DayOverrides, DayEntry, BGHonorValues } from '../types';
+import { PHASE_CONFIG } from '../types';
 
 /**
  * Calculate expected marks gained per game based on win rate.
@@ -10,11 +11,29 @@ export function expectedMarksPerGame(winRate: number): number {
 }
 
 /**
- * Calculate expected honor gained per game based on phase config and win rate.
+ * Calculate expected honor for a single BG based on win rate.
  * Formula: winRate * honorPerWin + (1 - winRate) * honorPerLoss
  */
-export function expectedHonorPerGame(phase: PhaseConfig, winRate: number): number {
-  return winRate * phase.honorPerWin + (1 - winRate) * phase.honorPerLoss;
+export function expectedHonorForBG(bgHonor: BGHonorValues, winRate: number): number {
+  return winRate * bgHonor.honorPerWin + (1 - winRate) * bgHonor.honorPerLoss;
+}
+
+/**
+ * Calculate mean expected honor per game across all active BGs.
+ * Assumes equal probability of playing each BG type.
+ * For Classic: averages WSG, AB, AV
+ * For TBC: averages WSG, AB, AV, EotS
+ */
+export function expectedHonorPerGame(config: AppConfig, winRate: number): number {
+  const phaseConfig = PHASE_CONFIG[config.phase];
+  const bgKeys = phaseConfig.bgKeys;
+
+  let totalHonor = 0;
+  for (const bg of bgKeys) {
+    totalHonor += expectedHonorForBG(config.bgHonor[bg], winRate);
+  }
+
+  return totalHonor / bgKeys.length;
 }
 
 /**
@@ -35,17 +54,6 @@ export function computeTurnInSets(
 }
 
 /**
- * Get the phase config for a given date.
- * Returns classicConfig if date < tbcStartDate, tbcConfig otherwise.
- */
-export function getPhaseForDate(date: string, config: AppConfig): PhaseConfig {
-  if (date < config.tbcStartDate) {
-    return config.classicConfig;
-  }
-  return config.tbcConfig;
-}
-
-/**
  * Calculate the result for a single day.
  */
 export function computeDayResult(
@@ -57,8 +65,8 @@ export function computeDayResult(
   gamesPlanned: number,
   overrides?: DayOverrides
 ): DayResult {
-  const phase = getPhaseForDate(date, config);
-  const marksReserve = config.marksThresholdPerBG * phase.numBGs;
+  const { numBGs, marksPerTurnIn } = PHASE_CONFIG[config.phase];
+  const marksReserve = config.marksThresholdPerBG * numBGs;
 
   // Marks calculation
   const expectedMarksGained = gamesPlanned * expectedMarksPerGame(config.winRate);
@@ -66,15 +74,16 @@ export function computeDayResult(
   const turnInSets = computeTurnInSets(
     marksBeforeTurnIn,
     marksReserve,
-    phase.marksPerTurnIn,
+    marksPerTurnIn,
     config.enableTurnIns
   );
-  let marksAfterTurnIn = marksBeforeTurnIn - turnInSets * phase.marksPerTurnIn;
+  let marksAfterTurnIn = marksBeforeTurnIn - turnInSets * marksPerTurnIn;
 
   // Honor calculation
-  const honorFromBGs = gamesPlanned * expectedHonorPerGame(phase, config.winRate) * config.bgHonorMult;
-  const honorFromDailyQuest = phase.dailyQuestHonorBase * config.questHonorMult;
-  const honorFromTurnIns = turnInSets * phase.turnInHonorBase * config.questHonorMult;
+  const honorFromBGs =
+    gamesPlanned * expectedHonorPerGame(config, config.winRate) * config.bgHonorMult;
+  const honorFromDailyQuest = config.dailyQuestHonor * config.questHonorMult;
+  const honorFromTurnIns = turnInSets * config.turnInHonor * config.questHonorMult;
   const totalHonorGained = honorFromBGs + honorFromDailyQuest + honorFromTurnIns;
   let honorEndOfDay = honorStart + totalHonorGained;
 
@@ -94,7 +103,6 @@ export function computeDayResult(
   return {
     dayIndex,
     date,
-    phase: phase.name,
     gamesPlanned,
     honorStart,
     marksStart,
@@ -190,7 +198,10 @@ export function computeForecast(
 /**
  * Find the first day where the honor target is reached.
  */
-export function findGoalReachedDay(results: DayResult[], honorTarget: number): DayResult | null {
+export function findGoalReachedDay(
+  results: DayResult[],
+  honorTarget: number
+): DayResult | null {
   for (const result of results) {
     if (result.honorEndOfDay >= honorTarget) {
       return result;

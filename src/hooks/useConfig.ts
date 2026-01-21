@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import type { AppConfig, PhaseConfig, ValidationResult } from '../types';
+import type { AppConfig, BGHonorConfig, BGHonorValues, ValidationResult } from '../types';
 import { useLocalStorage } from './useLocalStorage';
 import { createDefaultConfig } from '../config/defaults';
 import { validateConfig } from '../logic/validation';
@@ -10,8 +10,7 @@ interface UseConfigReturn {
   config: AppConfig;
   validation: ValidationResult;
   updateConfig: (updates: Partial<AppConfig>) => void;
-  updateClassicConfig: (updates: Partial<PhaseConfig>) => void;
-  updateTbcConfig: (updates: Partial<PhaseConfig>) => void;
+  updateBGHonor: (bg: keyof BGHonorConfig, values: Partial<BGHonorValues>) => void;
   resetConfig: () => void;
   setConfig: (config: AppConfig) => void;
 }
@@ -39,28 +38,17 @@ export function useConfig(): UseConfigReturn {
     [setConfigInternal]
   );
 
-  // Update classic phase config
-  const updateClassicConfig = useCallback(
-    (updates: Partial<PhaseConfig>) => {
+  // Update BG honor values
+  const updateBGHonor = useCallback(
+    (bg: keyof BGHonorConfig, values: Partial<BGHonorValues>) => {
       setConfigInternal((prev) => ({
         ...prev,
-        classicConfig: {
-          ...prev.classicConfig,
-          ...updates,
-        },
-      }));
-    },
-    [setConfigInternal]
-  );
-
-  // Update TBC phase config
-  const updateTbcConfig = useCallback(
-    (updates: Partial<PhaseConfig>) => {
-      setConfigInternal((prev) => ({
-        ...prev,
-        tbcConfig: {
-          ...prev.tbcConfig,
-          ...updates,
+        bgHonor: {
+          ...prev.bgHonor,
+          [bg]: {
+            ...prev.bgHonor[bg],
+            ...values,
+          },
         },
       }));
     },
@@ -85,8 +73,7 @@ export function useConfig(): UseConfigReturn {
     config,
     validation,
     updateConfig,
-    updateClassicConfig,
-    updateTbcConfig,
+    updateBGHonor,
     resetConfig,
     setConfig,
   };

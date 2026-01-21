@@ -1,24 +1,45 @@
-// Phase-specific configuration
-export interface PhaseConfig {
-  name: 'classic' | 'tbc';
-  numBGs: number; // 3 for classic, 4 for tbc
-  marksPerTurnIn: number; // same as numBGs
-  honorPerWin: number; // BG honor on win
-  honorPerLoss: number; // BG honor on loss
-  dailyQuestHonorBase: number; // e.g., 419 classic, 600 tbc
-  turnInHonorBase: number; // honor per turn-in set
+// Phase type - determines number of BGs and marks per turn-in
+export type Phase = 'classic' | 'tbc';
+
+// BG types
+export type ClassicBG = 'wsg' | 'ab' | 'av';
+export type TbcBG = ClassicBG | 'eots';
+
+// Honor values for a single BG
+export interface BGHonorValues {
+  honorPerWin: number;
+  honorPerLoss: number;
 }
+
+// Per-BG honor configuration
+export interface BGHonorConfig {
+  wsg: BGHonorValues;
+  ab: BGHonorValues;
+  av: BGHonorValues;
+  eots: BGHonorValues; // Only used in TBC phase
+}
+
+// Phase constants
+export const PHASE_CONFIG = {
+  classic: { numBGs: 3, marksPerTurnIn: 3, bgKeys: ['wsg', 'ab', 'av'] as const },
+  tbc: { numBGs: 4, marksPerTurnIn: 4, bgKeys: ['wsg', 'ab', 'av', 'eots'] as const },
+} as const;
 
 // Main application configuration
 export interface AppConfig {
-  // Phase transition
+  // Timeline
   startDate: string; // ISO date, calculation begins
-  tbcStartDate: string; // ISO date, switch to TBC rules
   endDate: string; // ISO date, goal should be reached by this date
 
-  // Phase-specific settings
-  classicConfig: PhaseConfig;
-  tbcConfig: PhaseConfig;
+  // Phase selection (affects numBGs and marksPerTurnIn)
+  phase: Phase;
+
+  // Per-BG honor values (user-configurable)
+  bgHonor: BGHonorConfig;
+
+  // Quest honor values
+  dailyQuestHonor: number; // daily quest honor
+  turnInHonor: number; // honor per turn-in set
 
   // Shared settings
   winRate: number; // 0..1, applies to all BGs
@@ -63,7 +84,6 @@ export interface DayEntry {
 export interface DayResult {
   dayIndex: number;
   date: string;
-  phase: 'classic' | 'tbc';
 
   // Inputs for this day
   gamesPlanned: number;
