@@ -31,7 +31,7 @@ export function ImportButton({ onImport }: ImportButtonProps) {
       } else {
         setError(result.error || 'Failed to import file');
       }
-    } catch (err) {
+    } catch {
       setError('Invalid JSON file');
     }
 
