@@ -7,6 +7,8 @@ import {
   TargetInput,
 } from './components/ConfigPanel';
 import { PhaseSettingsPanel } from './components/PhaseSettingsPanel';
+import { Summary } from './components/Summary';
+import { ForecastTable } from './components/ForecastTable';
 import { useConfig } from './hooks/useConfig';
 import { useEntries } from './hooks/useEntries';
 import { useForecast } from './hooks/useForecast';
@@ -21,8 +23,11 @@ function App() {
     updateTbcConfig,
   } = useConfig();
 
-  const { entries } = useEntries();
-  const { dailyGamesRequired, goalDay, isValid } = useForecast(config, entries);
+  const { entries, setOverride, clearOverride } = useEntries();
+  const { results, dailyGamesRequired, goalDay, isValid } = useForecast(
+    config,
+    entries
+  );
 
   return (
     <Layout>
@@ -44,7 +49,9 @@ function App() {
               marksThresholdPerBG={config.marksThresholdPerBG}
               enableTurnIns={config.enableTurnIns}
               onWinRateChange={(v) => updateConfig({ winRate: v })}
-              onMarksThresholdChange={(v) => updateConfig({ marksThresholdPerBG: v })}
+              onMarksThresholdChange={(v) =>
+                updateConfig({ marksThresholdPerBG: v })
+              }
               onEnableTurnInsChange={(v) => updateConfig({ enableTurnIns: v })}
               errors={validation.errors}
             />
@@ -83,82 +90,21 @@ function App() {
         </div>
 
         <div className="results-column">
-          <div className="panel summary-panel">
-            <h3 className="panel-title">Summary</h3>
+          <Summary
+            config={config}
+            dailyGamesRequired={dailyGamesRequired}
+            goalDay={goalDay}
+            totalDays={results.length}
+            isValid={isValid}
+            errors={validation.errors}
+          />
 
-            {!isValid ? (
-              <div className="validation-errors">
-                <p className="text-danger">Configuration has errors:</p>
-                <ul>
-                  {validation.errors.map((error, i) => (
-                    <li key={i} className="text-danger">
-                      {error}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <div className="summary-content">
-                <div className="summary-row">
-                  <span className="summary-label">Honor Progress:</span>
-                  <span className="summary-value">
-                    {config.startingHonor.toLocaleString()} /{' '}
-                    {config.honorTarget.toLocaleString()}
-                  </span>
-                </div>
-
-                <div className="summary-row">
-                  <span className="summary-label">Remaining:</span>
-                  <span className="summary-value">
-                    {Math.max(
-                      0,
-                      config.honorTarget - config.startingHonor
-                    ).toLocaleString()}{' '}
-                    honor
-                  </span>
-                </div>
-
-                <div className="summary-row">
-                  <span className="summary-label">Starting Marks:</span>
-                  <span className="summary-value">{config.startingMarks}</span>
-                </div>
-
-                <hr />
-
-                <div className="summary-row highlight">
-                  <span className="summary-label">Required Games/Day:</span>
-                  <span className="summary-value">
-                    {dailyGamesRequired.toFixed(1)}
-                  </span>
-                </div>
-
-                {goalDay && (
-                  <div className="summary-row">
-                    <span className="summary-label">Goal Reached:</span>
-                    <span className="summary-value text-success">
-                      Day {goalDay.dayIndex} ({goalDay.date})
-                    </span>
-                  </div>
-                )}
-
-                {!goalDay && (
-                  <div className="summary-row">
-                    <span className="summary-label">Goal Reached:</span>
-                    <span className="summary-value text-warning">
-                      Not within timeframe
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="panel">
-            <h3 className="panel-title">Forecast</h3>
-            <p className="text-muted">
-              Forecast table will be added in Sprint 5
-            </p>
-          </div>
+          <ForecastTable
+            results={results}
+            enableTurnIns={config.enableTurnIns}
+            onSetOverride={setOverride}
+            onClearOverride={clearOverride}
+          />
         </div>
       </div>
     </Layout>

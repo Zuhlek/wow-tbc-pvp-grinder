@@ -1,0 +1,185 @@
+.forecast-panel {
+  background-color: var(--color-bg-panel);
+}
+
+.forecast-table-container {
+  overflow-x: auto;
+  margin: 0 -1rem;
+  padding: 0 1rem;
+}
+
+.forecast-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  min-width: 500px;
+}
+
+.forecast-table th,
+.forecast-table td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.forecast-table th {
+  color: var(--color-text-muted);
+  font-weight: 500;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.forecast-table tbody tr {
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.forecast-table tbody tr:hover {
+  background-color: var(--color-bg-input);
+}
+
+.text-right {
+  text-align: right !important;
+}
+
+/* Day cell */
+.day-cell {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.override-indicator {
+  color: var(--color-warning);
+  margin-left: 0.25rem;
+  font-weight: bold;
+}
+
+/* Date cell */
+.date-cell {
+  white-space: nowrap;
+  color: var(--color-text-muted);
+}
+
+/* Phase badges */
+.phase-cell .badge {
+  font-size: 0.625rem;
+  padding: 0.125rem 0.375rem;
+}
+
+/* Honor cell */
+.honor-cell {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.goal-indicator {
+  color: var(--color-success);
+  margin-left: 0.5rem;
+  font-weight: bold;
+}
+
+/* Goal row highlighting */
+.goal-row {
+  background-color: rgba(39, 174, 96, 0.1) !important;
+}
+
+.goal-row td {
+  border-bottom-color: var(--color-success);
+}
+
+.goal-row:hover {
+  background-color: rgba(39, 174, 96, 0.15) !important;
+}
+
+/* Override row */
+.override-row {
+  background-color: rgba(243, 156, 18, 0.05);
+}
+
+.override-row:hover {
+  background-color: rgba(243, 156, 18, 0.1) !important;
+}
+
+/* Expanded row */
+.expanded {
+  background-color: var(--color-bg-input) !important;
+}
+
+/* Override panel */
+.override-panel {
+  background-color: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.override-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.override-header h4 {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.override-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.override-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.override-field label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.override-field input {
+  width: 100%;
+}
+
+.override-field small {
+  font-size: 0.75rem;
+}
+
+.override-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Hint */
+.forecast-hint {
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .override-form {
+    grid-template-columns: 1fr;
+  }
+
+  .forecast-table {
+    font-size: 0.75rem;
+  }
+
+  .forecast-table th,
+  .forecast-table td {
+    padding: 0.375rem 0.5rem;
+  }
+}
