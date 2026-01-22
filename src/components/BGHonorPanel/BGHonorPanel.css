@@ -1,33 +1,33 @@
 .panel-subtitle {
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   font-weight: normal;
   color: var(--color-text-muted);
-  margin-left: 0.375rem;
+  margin-left: 0.25rem;
 }
 
 .bg-honor-grid {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  margin-bottom: 0.5rem;
+  gap: 0.125rem;
+  margin-bottom: 0.25rem;
 }
 
 .bg-honor-header {
   display: grid;
-  grid-template-columns: 1fr 70px 70px;
-  gap: 0.375rem;
-  font-size: 0.6875rem;
+  grid-template-columns: 1fr 60px 60px;
+  gap: 0.25rem;
+  font-size: 0.625rem;
   font-weight: 500;
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 0 0.125rem;
+  padding: 0;
 }
 
 .bg-honor-row {
   display: grid;
-  grid-template-columns: 1fr 70px 70px;
-  gap: 0.375rem;
+  grid-template-columns: 1fr 60px 60px;
+  gap: 0.25rem;
   align-items: center;
 }
 
@@ -37,7 +37,7 @@
 
 .bg-honor-row input {
   width: 100%;
-  padding: 0.25rem 0.375rem;
+  padding: 0.1875rem 0.25rem;
 }
 
 .bg-honor-row input:disabled {
@@ -47,15 +47,15 @@
 
 .bg-name {
   font-weight: 500;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   display: flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: 0.25rem;
 }
 
 .inactive-badge {
-  font-size: 0.5625rem;
-  padding: 0.0625rem 0.25rem;
+  font-size: 0.5rem;
+  padding: 0 0.1875rem;
   background-color: var(--color-bg-input);
   border-radius: 4px;
   color: var(--color-text-muted);
@@ -65,11 +65,11 @@
 @media (max-width: 640px) {
   .bg-honor-header,
   .bg-honor-row {
-    grid-template-columns: 1fr 55px 55px;
+    grid-template-columns: 1fr 50px 50px;
   }
 
   .bg-honor-row input {
-    padding: 0.1875rem;
-    font-size: 0.8125rem;
+    padding: 0.125rem;
+    font-size: 0.75rem;
   }
 }

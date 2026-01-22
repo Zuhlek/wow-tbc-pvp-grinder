@@ -1,10 +1,19 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import type { AppConfig, BGHonorConfig, BGHonorValues, ValidationResult } from '../types';
 import { useLocalStorage } from './useLocalStorage';
 import { createDefaultConfig } from '../config/defaults';
 import { validateConfig } from '../logic/validation';
 
 const STORAGE_KEY = 'wow-pvp-grinder-config';
+
+function isValidConfig(config: AppConfig): boolean {
+  return (
+    typeof config.startingMarksPerBG === 'number' &&
+    !isNaN(config.startingMarksPerBG) &&
+    typeof config.marksThresholdPerBG === 'number' &&
+    !isNaN(config.marksThresholdPerBG)
+  );
+}
 
 interface UseConfigReturn {
   config: AppConfig;
@@ -20,6 +29,14 @@ export function useConfig(): UseConfigReturn {
     STORAGE_KEY,
     createDefaultConfig()
   );
+
+  // Reset to defaults if config is invalid (e.g., old schema)
+  useEffect(() => {
+    if (!isValidConfig(config)) {
+      clearConfig();
+      setConfigInternal(createDefaultConfig());
+    }
+  }, [config, clearConfig, setConfigInternal]);
 
   const validation = validateConfig(config);
 

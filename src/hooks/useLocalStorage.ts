@@ -12,12 +12,23 @@ export function useLocalStorage<T>(
   key: string,
   initialValue: T
 ): [T, (value: T | ((prev: T) => T)) => void, () => void] {
-  // Initialize state with stored value or initial value
+  // Initialize state with stored value merged with initial value (objects only, not arrays)
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
       const item = window.localStorage.getItem(key);
       if (item) {
-        return JSON.parse(item) as T;
+        const stored = JSON.parse(item) as T;
+        // Merge stored with initial to fill in any missing fields (only for plain objects)
+        if (
+          typeof stored === 'object' &&
+          stored !== null &&
+          !Array.isArray(stored) &&
+          typeof initialValue === 'object' &&
+          !Array.isArray(initialValue)
+        ) {
+          return { ...initialValue, ...stored } as T;
+        }
+        return stored;
       }
       return initialValue;
     } catch (error) {
