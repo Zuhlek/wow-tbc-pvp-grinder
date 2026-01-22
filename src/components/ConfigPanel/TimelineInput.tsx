@@ -67,9 +67,6 @@ export function TimelineInput({
             TBC (4 BGs)
           </button>
         </div>
-        <small className="text-muted">
-          Affects marks per turn-in and BG count for reserve calculation
-        </small>
       </div>
 
       {errors.length > 0 && (

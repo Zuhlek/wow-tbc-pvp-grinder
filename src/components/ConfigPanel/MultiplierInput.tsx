@@ -39,7 +39,7 @@ export function MultiplierInput({
       </div>
 
       <div className="form-group">
-        <label htmlFor="questHonorMult">Quest/Turn-in Multiplier</label>
+        <label htmlFor="questHonorMult">Quest/Turn-in Mult</label>
         <div className="input-with-suffix">
           <NumberInput
             id="questHonorMult"
@@ -51,7 +51,6 @@ export function MultiplierInput({
           />
           <span className="input-suffix">x</span>
         </div>
-        <small className="text-muted">Applies to daily quest and turn-in honor</small>
       </div>
     </div>
   );

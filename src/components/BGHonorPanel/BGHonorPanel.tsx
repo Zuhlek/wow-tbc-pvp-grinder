@@ -71,9 +71,6 @@ export function BGHonorPanel({ bgHonor, phase, onBGHonorChange }: BGHonorPanelPr
         })}
       </div>
 
-      <small className="text-muted">
-        Honor per game is averaged across all active BGs ({activeBGs.length}) based on win rate
-      </small>
     </div>
   );
 }

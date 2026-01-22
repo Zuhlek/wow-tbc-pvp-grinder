@@ -28,7 +28,6 @@ export function TargetInput({
           onChange={onHonorTargetChange}
           className={hasError('honortarget') ? 'input-error' : ''}
         />
-        <small className="text-muted">Honor goal to reach by end date</small>
       </div>
     </div>
   );

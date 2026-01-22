@@ -53,7 +53,6 @@ export function StartingStateInput({
           onChange={onStartingMarksPerBGChange}
           className={hasError('startingmarks') ? 'input-error' : ''}
         />
-        <small className="text-muted">Your marks for each BG type</small>
       </div>
     </div>
   );

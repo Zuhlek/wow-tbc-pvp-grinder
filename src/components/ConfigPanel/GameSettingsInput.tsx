@@ -114,7 +114,6 @@ export function GameSettingsInput({
           onChange={onTurnInHonorChange}
           className={hasError('turninhonor') ? 'input-error' : ''}
         />
-        <small className="text-muted">Honor per turn-in set</small>
       </div>
     </div>
   );

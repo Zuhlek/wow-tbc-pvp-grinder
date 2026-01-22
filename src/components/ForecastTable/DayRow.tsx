@@ -32,8 +32,7 @@ export function DayRow({ result, enableTurnIns, isExpanded, isToday, onClick }: 
       </td>
       <td className="date-cell">{formatDate(result.date)}</td>
       <td className="text-right">{result.gamesPlanned.toFixed(1)}</td>
-      <td className="text-right">+{result.expectedMarksGainedPerBG.toFixed(1)}</td>
-      <td className="text-right">{result.marksPerBGEnd.toFixed(1)}</td>
+      <td className="text-right">{Math.round(result.marksPerBGEnd)}</td>
       {enableTurnIns && (
         <td className="text-right">
           {result.turnInSets > 0 ? result.turnInSets : '-'}

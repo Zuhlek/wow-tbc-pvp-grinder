@@ -62,7 +62,6 @@ export function ForecastTable({
               <th>Day</th>
               <th>Date</th>
               <th className="text-right">Games</th>
-              <th className="text-right">+Marks</th>
               <th className="text-right">Marks</th>
               {enableTurnIns && <th className="text-right">Turn-ins</th>}
               <th className="text-right">Honor</th>
