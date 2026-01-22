@@ -1,13 +1,18 @@
-import type { Phase } from '../../types';
+import type { Phase, CalculationMode } from '../../types';
+import { NumberInput } from '../NumberInput';
 import './ConfigPanel.css';
 
 interface TimelineInputProps {
   startDate: string;
   endDate: string;
   phase: Phase;
+  calculationMode: CalculationMode;
+  manualGamesPerDay: number;
   onStartDateChange: (value: string) => void;
   onEndDateChange: (value: string) => void;
   onPhaseChange: (value: Phase) => void;
+  onCalculationModeChange: (value: CalculationMode) => void;
+  onManualGamesPerDayChange: (value: number) => void;
   errors?: string[];
 }
 
@@ -15,9 +20,13 @@ export function TimelineInput({
   startDate,
   endDate,
   phase,
+  calculationMode,
+  manualGamesPerDay,
   onStartDateChange,
   onEndDateChange,
   onPhaseChange,
+  onCalculationModeChange,
+  onManualGamesPerDayChange,
   errors = [],
 }: TimelineInputProps) {
   const hasDateError = (field: string) =>
@@ -39,15 +48,48 @@ export function TimelineInput({
       </div>
 
       <div className="form-group">
-        <label htmlFor="endDate">End Date (Goal Deadline)</label>
-        <input
-          type="date"
-          id="endDate"
-          value={endDate}
-          onChange={(e) => onEndDateChange(e.target.value)}
-          className={hasDateError('enddate') ? 'input-error' : ''}
-        />
+        <label>Calculation Mode</label>
+        <div className="phase-toggle">
+          <button
+            type="button"
+            className={`phase-btn ${calculationMode === 'auto' ? 'active' : ''}`}
+            onClick={() => onCalculationModeChange('auto')}
+          >
+            Auto
+          </button>
+          <button
+            type="button"
+            className={`phase-btn ${calculationMode === 'manual' ? 'active' : ''}`}
+            onClick={() => onCalculationModeChange('manual')}
+          >
+            Manual
+          </button>
+        </div>
       </div>
+
+      {calculationMode === 'auto' ? (
+        <div className="form-group">
+          <label htmlFor="endDate">End Date</label>
+          <input
+            type="date"
+            id="endDate"
+            value={endDate}
+            onChange={(e) => onEndDateChange(e.target.value)}
+            className={hasDateError('enddate') ? 'input-error' : ''}
+          />
+        </div>
+      ) : (
+        <div className="form-group">
+          <label htmlFor="manualGamesPerDay">Games / Day</label>
+          <NumberInput
+            id="manualGamesPerDay"
+            min={0}
+            max={100}
+            value={manualGamesPerDay}
+            onChange={onManualGamesPerDayChange}
+          />
+        </div>
+      )}
 
       <div className="form-group">
         <label>Game Phase</label>

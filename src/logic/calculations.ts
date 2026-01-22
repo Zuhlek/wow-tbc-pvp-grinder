@@ -191,6 +191,61 @@ export function findGoalReachedDay(
   return null;
 }
 
+const MAX_FORECAST_DAYS = 365;
+
+export function computeForecastManual(
+  config: AppConfig,
+  entries: DayEntry[],
+  dailyGames: number
+): { results: DayResult[]; dailyGamesRequired: number } {
+  const results: DayResult[] = [];
+
+  let currentHonor = config.startingHonor;
+  let currentMarksPerBG = config.startingMarksPerBG;
+  let goalReached = false;
+
+  const overridesMap = new Map<number, DayOverrides>();
+  for (const entry of entries) {
+    if (entry.overrides) {
+      overridesMap.set(entry.dayIndex, entry.overrides);
+    }
+  }
+
+  // Continue until goal is reached or max days
+  for (let i = 0; i < MAX_FORECAST_DAYS; i++) {
+    const dayIndex = i + 1;
+    const date = addDays(config.startDate, i);
+    const overrides = overridesMap.get(dayIndex);
+
+    const result = computeDayResult(
+      dayIndex,
+      date,
+      currentHonor,
+      currentMarksPerBG,
+      config,
+      dailyGames,
+      overrides
+    );
+
+    if (!goalReached && result.honorEndOfDay >= config.honorTarget) {
+      result.isGoalReachedDay = true;
+      goalReached = true;
+    }
+
+    results.push(result);
+
+    currentHonor = result.honorEndOfDay;
+    currentMarksPerBG = result.marksPerBGEnd;
+
+    // Stop after goal is reached (show a few more days for context)
+    if (goalReached && results.length >= dayIndex + 3) {
+      break;
+    }
+  }
+
+  return { results, dailyGamesRequired: dailyGames };
+}
+
 export function computeRequiredDailyGames(config: AppConfig): number {
   if (config.startingHonor >= config.honorTarget) {
     return 0;

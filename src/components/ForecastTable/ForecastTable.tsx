@@ -59,11 +59,13 @@ export function ForecastTable({
         <table className="forecast-table">
           <thead>
             <tr>
-              <th>Day</th>
+              <th>#</th>
               <th>Date</th>
-              <th className="text-right">Games</th>
-              <th className="text-right">Marks</th>
-              {enableTurnIns && <th className="text-right">Turn-ins</th>}
+              <th className="text-right">G</th>
+              <th className="text-right">+M</th>
+              <th className="text-right">M</th>
+              {enableTurnIns && <th className="text-right">TI</th>}
+              <th className="text-right">+H</th>
               <th className="text-right">Honor</th>
             </tr>
           </thead>

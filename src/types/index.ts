@@ -25,11 +25,18 @@ export const PHASE_CONFIG = {
   tbc: { numBGs: 4, marksPerTurnIn: 4, bgKeys: ['wsg', 'ab', 'av', 'eots'] as const },
 } as const;
 
+// Calculation mode
+export type CalculationMode = 'auto' | 'manual';
+
 // Main application configuration
 export interface AppConfig {
   // Timeline
   startDate: string; // ISO date, calculation begins
-  endDate: string; // ISO date, goal should be reached by this date
+  endDate: string; // ISO date, goal should be reached by this date (only used in auto mode)
+
+  // Calculation mode
+  calculationMode: CalculationMode; // 'auto' = calculate games/day to reach goal by endDate, 'manual' = fixed games/day
+  manualGamesPerDay: number; // games per day when in manual mode
 
   // Phase selection (affects numBGs and marksPerTurnIn)
   phase: Phase;

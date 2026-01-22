@@ -7,11 +7,17 @@ import { validateConfig } from '../logic/validation';
 const STORAGE_KEY = 'wow-pvp-grinder-config';
 
 function isValidConfig(config: AppConfig): boolean {
+  // Check for new required fields - if missing, will be merged from defaults
+  const hasCalcMode = config.calculationMode === 'auto' || config.calculationMode === 'manual';
+  const hasManualGames = typeof config.manualGamesPerDay === 'number' && !isNaN(config.manualGamesPerDay);
+
   return (
     typeof config.startingMarksPerBG === 'number' &&
     !isNaN(config.startingMarksPerBG) &&
     typeof config.marksThresholdPerBG === 'number' &&
-    !isNaN(config.marksThresholdPerBG)
+    !isNaN(config.marksThresholdPerBG) &&
+    hasCalcMode &&
+    hasManualGames
   );
 }
 

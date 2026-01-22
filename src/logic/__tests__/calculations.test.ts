@@ -29,6 +29,8 @@ const simpleBGHonor: BGHonorConfig = {
 const validConfig: AppConfig = {
   startDate: '2024-01-18',
   endDate: '2024-02-15',
+  calculationMode: 'auto',
+  manualGamesPerDay: 10,
   phase: 'classic',
   bgHonor: simpleBGHonor,
   dailyQuestHonor: 419,

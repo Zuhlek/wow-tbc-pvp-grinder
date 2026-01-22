@@ -1,7 +1,12 @@
 .config-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.375rem;
+}
+
+.config-grid > * {
+  flex: 1 1 280px;
+  min-width: 240px;
 }
 
 .config-section {
@@ -107,19 +112,22 @@ input[type="date"] {
 /* Phase toggle buttons */
 .phase-toggle {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.25rem;
 }
 
 .phase-btn {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 60px;
   padding: 0.25rem 0.5rem;
   border: 1px solid var(--color-border);
   background-color: var(--color-bg-input);
   color: var(--color-text-muted);
   border-radius: 6px;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: clamp(0.6875rem, 2vw, 0.75rem);
   transition: all 0.15s;
+  white-space: nowrap;
 }
 
 .phase-btn:hover {

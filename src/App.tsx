@@ -58,9 +58,13 @@ function App() {
             startDate={config.startDate}
             endDate={config.endDate}
             phase={config.phase}
+            calculationMode={config.calculationMode}
+            manualGamesPerDay={config.manualGamesPerDay}
             onStartDateChange={(v) => updateConfig({ startDate: v })}
             onEndDateChange={(v) => updateConfig({ endDate: v })}
             onPhaseChange={(v) => updateConfig({ phase: v })}
+            onCalculationModeChange={(v) => updateConfig({ calculationMode: v })}
+            onManualGamesPerDayChange={(v) => updateConfig({ manualGamesPerDay: v })}
             errors={validation.errors}
           />
 

@@ -21,6 +21,9 @@ export const DEFAULT_CONFIG: AppConfig = {
   startDate: getToday(),
   endDate: '2026-02-05', // Default end date
 
+  calculationMode: 'auto',
+  manualGamesPerDay: 10,
+
   phase: 'classic',
   bgHonor: DEFAULT_BG_HONOR,
 
