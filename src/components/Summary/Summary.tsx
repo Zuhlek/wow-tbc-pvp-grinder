@@ -24,8 +24,10 @@ export function Summary({
     (config.startingHonor / config.honorTarget) * 100
   );
 
-  // Check if goal is after end date
-  const goalAfterDeadline = goalDay && goalDay.date > config.endDate;
+  const isManualMode = config.calculationMode === 'manual';
+
+  // Check if goal is after end date (only relevant in auto mode)
+  const goalAfterDeadline = !isManualMode && goalDay && goalDay.date > config.endDate;
 
   if (!isValid) {
     return (
@@ -76,27 +78,43 @@ export function Summary({
         {/* Marks Info */}
         <div className="info-row">
           <span className="info-label">Starting Marks</span>
-          <span className="info-value">{config.startingMarksPerBG} per BG</span>
+          <span className="info-value">{config.startingMarksPerBG}/BG</span>
         </div>
         <div className="info-row">
           <span className="info-label">Marks Reserve</span>
           <span className="info-value text-muted">
-            {config.marksThresholdPerBG} per BG
+            {config.marksThresholdPerBG}/BG
           </span>
         </div>
 
         <hr className="divider" />
 
-        {/* Key Metrics */}
-        <div className="info-row">
-          <span className="info-label">Days in Forecast</span>
-          <span className="info-value">{totalDays}</span>
-        </div>
-
-        <div className="metric-highlight">
-          <span className="metric-label">Required Games/Day</span>
-          <span className="metric-value">{dailyGamesRequired.toFixed(1)}</span>
-        </div>
+        {/* Key Metrics - different for auto vs manual mode */}
+        {isManualMode ? (
+          <>
+            <div className="info-row">
+              <span className="info-label">Games/Day</span>
+              <span className="info-value">{config.manualGamesPerDay}</span>
+            </div>
+            {goalDay && (
+              <div className="info-row">
+                <span className="info-label">Days to Goal</span>
+                <span className="info-value">{goalDay.dayIndex}</span>
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <div className="info-row">
+              <span className="info-label">Days</span>
+              <span className="info-value">{totalDays}</span>
+            </div>
+            <div className="metric-highlight">
+              <span className="metric-label">Games/Day</span>
+              <span className="metric-value">{dailyGamesRequired.toFixed(1)}</span>
+            </div>
+          </>
+        )}
 
         {/* Goal Status */}
         <div className="goal-status">
@@ -130,7 +148,7 @@ export function Summary({
               <div className="goal-info">
                 <span className="goal-label text-danger">Goal Not Reached</span>
                 <span className="goal-value text-muted">
-                  Increase games or extend deadline
+                  {isManualMode ? 'Increase games or target unreachable' : 'Increase games or extend deadline'}
                 </span>
               </div>
             </div>

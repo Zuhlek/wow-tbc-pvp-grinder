@@ -192,6 +192,7 @@ export function findGoalReachedDay(
 }
 
 const MAX_FORECAST_DAYS = 365;
+const EXTRA_DAYS_AFTER_GOAL = 5;
 
 export function computeForecastManual(
   config: AppConfig,
@@ -202,7 +203,7 @@ export function computeForecastManual(
 
   let currentHonor = config.startingHonor;
   let currentMarksPerBG = config.startingMarksPerBG;
-  let goalReached = false;
+  let goalReachedAtDay: number | null = null;
 
   const overridesMap = new Map<number, DayOverrides>();
   for (const entry of entries) {
@@ -211,7 +212,7 @@ export function computeForecastManual(
     }
   }
 
-  // Continue until goal is reached or max days
+  // Continue until goal is reached + buffer days, or max days
   for (let i = 0; i < MAX_FORECAST_DAYS; i++) {
     const dayIndex = i + 1;
     const date = addDays(config.startDate, i);
@@ -227,9 +228,9 @@ export function computeForecastManual(
       overrides
     );
 
-    if (!goalReached && result.honorEndOfDay >= config.honorTarget) {
+    if (goalReachedAtDay === null && result.honorEndOfDay >= config.honorTarget) {
       result.isGoalReachedDay = true;
-      goalReached = true;
+      goalReachedAtDay = dayIndex;
     }
 
     results.push(result);
@@ -237,8 +238,8 @@ export function computeForecastManual(
     currentHonor = result.honorEndOfDay;
     currentMarksPerBG = result.marksPerBGEnd;
 
-    // Stop after goal is reached (show a few more days for context)
-    if (goalReached && results.length >= dayIndex + 3) {
+    // Stop a few days after goal is reached
+    if (goalReachedAtDay !== null && dayIndex >= goalReachedAtDay + EXTRA_DAYS_AFTER_GOAL) {
       break;
     }
   }
