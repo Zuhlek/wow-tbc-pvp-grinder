@@ -99,7 +99,7 @@ describe('useEntries', () => {
 
     const newEntries = [
       { dayIndex: 5, date: '2024-01-22', overrides: { actualHonorEndOfDay: 5000 } },
-      { dayIndex: 6, date: '2024-01-23', overrides: { actualMarksEndOfDay: 100 } },
+      { dayIndex: 6, date: '2024-01-23', overrides: { actualMarksPerBG: 100 } },
     ];
 
     act(() => {
@@ -118,7 +118,6 @@ describe('useEntries', () => {
       result.current.setOverride(1, '2024-01-18', { actualHonorEndOfDay: 5000 });
     });
 
-    // Re-render hook to simulate page refresh
     const { result: result2 } = renderHook(() => useEntries());
 
     expect(result2.current.entries).toHaveLength(1);
@@ -133,17 +132,17 @@ describe('useEntries', () => {
     });
 
     expect(result.current.entries[0].overrides?.actualHonorEndOfDay).toBe(5000);
-    expect(result.current.entries[0].overrides?.actualMarksEndOfDay).toBeUndefined();
+    expect(result.current.entries[0].overrides?.actualMarksPerBG).toBeUndefined();
   });
 
   it('supports partial overrides (marks only)', () => {
     const { result } = renderHook(() => useEntries());
 
     act(() => {
-      result.current.setOverride(1, '2024-01-18', { actualMarksEndOfDay: 100 });
+      result.current.setOverride(1, '2024-01-18', { actualMarksPerBG: 100 });
     });
 
-    expect(result.current.entries[0].overrides?.actualMarksEndOfDay).toBe(100);
+    expect(result.current.entries[0].overrides?.actualMarksPerBG).toBe(100);
     expect(result.current.entries[0].overrides?.actualHonorEndOfDay).toBeUndefined();
   });
 });

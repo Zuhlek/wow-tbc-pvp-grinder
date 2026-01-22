@@ -1,4 +1,5 @@
 import { InfoTooltip } from '../InfoTooltip';
+import { NumberInput } from '../NumberInput';
 import './ConfigPanel.css';
 
 interface GameSettingsInputProps {
@@ -15,15 +16,13 @@ interface GameSettingsInputProps {
   errors?: string[];
 }
 
-const RESERVE_TOOLTIP = `The reserve threshold prevents you from running out of marks for a specific BG type.
+const RESERVE_TOOLTIP = `Marks per BG type to keep before turning in excess.
 
-Since marks are tracked as a combined total (assuming equal distribution), the reserve is calculated as: threshold × number of BG types.
+Example: With a reserve of 30, you'll keep 30 WSG, 30 AB, and 30 AV marks before any turn-ins happen.`;
 
-Example: 50 per BG × 3 BGs = 150 total marks kept in reserve before turn-ins begin.`;
+const TURNIN_TOOLTIP = `A turn-in requires one mark from each BG type.
 
-const TURNIN_TOOLTIP = `A turn-in set requires one mark from each BG type. In Classic (3 BGs), that's 3 marks total. In TBC (4 BGs), it's 4 marks.
-
-The calculator automatically converts excess marks above your reserve into turn-in sets.`;
+When your marks per BG exceed the reserve threshold, excess marks are converted into turn-in sets for bonus honor.`;
 
 export function GameSettingsInput({
   winRate,
@@ -67,19 +66,15 @@ export function GameSettingsInput({
           <InfoTooltip content={RESERVE_TOOLTIP} />
         </label>
         <div className="input-with-suffix">
-          <input
-            type="number"
+          <NumberInput
             id="marksThreshold"
-            min="0"
+            min={0}
             value={marksThresholdPerBG}
-            onChange={(e) => onMarksThresholdChange(Number(e.target.value))}
+            onChange={onMarksThresholdChange}
             className={hasError('marksthreshold') ? 'input-error' : ''}
           />
-          <span className="input-suffix">per BG type</span>
+          <span className="input-suffix">per BG</span>
         </div>
-        <small className="text-muted">
-          Marks kept before turning in excess
-        </small>
       </div>
 
       <div className="form-group">
@@ -91,52 +86,36 @@ export function GameSettingsInput({
             onChange={(e) => onEnableTurnInsChange(e.target.checked)}
           />
           <label htmlFor="enableTurnIns">
-            Enable Mark Turn-ins
+            Enable Turn-ins
             <InfoTooltip content={TURNIN_TOOLTIP} />
           </label>
         </div>
-        <small className="text-muted">
-          Uncheck to track marks without turning them in
-        </small>
       </div>
 
       <hr className="divider" />
 
       <div className="form-group">
         <label htmlFor="dailyQuestHonor">Daily Quest Honor</label>
-        <input
-          type="number"
+        <NumberInput
           id="dailyQuestHonor"
-          min="0"
+          min={0}
           value={dailyQuestHonor}
-          onChange={(e) => onDailyQuestHonorChange(Number(e.target.value))}
+          onChange={onDailyQuestHonorChange}
           className={hasError('dailyquesthonor') ? 'input-error' : ''}
         />
       </div>
 
       <div className="form-group">
-        <label htmlFor="turnInHonor">Turn-in Honor (per set)</label>
-        <input
-          type="number"
+        <label htmlFor="turnInHonor">Turn-in Honor</label>
+        <NumberInput
           id="turnInHonor"
-          min="0"
+          min={0}
           value={turnInHonor}
-          onChange={(e) => onTurnInHonorChange(Number(e.target.value))}
+          onChange={onTurnInHonorChange}
           className={hasError('turninhonor') ? 'input-error' : ''}
         />
+        <small className="text-muted">Honor per turn-in set</small>
       </div>
-
-      {errors.filter((e) => e.includes('winRate') || e.includes('marks')).length > 0 && (
-        <div className="error-messages">
-          {errors
-            .filter((e) => e.includes('winRate') || e.includes('marks'))
-            .map((error, i) => (
-              <p key={i} className="error-message">
-                {error}
-              </p>
-            ))}
-        </div>
-      )}
     </div>
   );
 }

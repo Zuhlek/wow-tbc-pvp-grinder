@@ -11,10 +11,10 @@ describe('useConfig', () => {
     const { result } = renderHook(() => useConfig());
 
     expect(result.current.config).toBeDefined();
-    expect(result.current.config.winRate).toBe(0.5);
+    expect(result.current.config.winRate).toBe(0.3);
     expect(result.current.config.honorTarget).toBe(75000);
     expect(result.current.config.phase).toBe('classic');
-    expect(result.current.config.bgHonor.wsg.honorPerWin).toBe(785);
+    expect(result.current.config.bgHonor.wsg.honorPerWin).toBe(600);
   });
 
   it('validates config and returns validation result', () => {
@@ -33,8 +33,7 @@ describe('useConfig', () => {
 
     expect(result.current.config.winRate).toBe(0.65);
     expect(result.current.config.honorTarget).toBe(50000);
-    // Other values unchanged
-    expect(result.current.config.marksThresholdPerBG).toBe(50);
+    expect(result.current.config.marksThresholdPerBG).toBe(30);
   });
 
   it('updateBGHonor updates BG honor values', () => {
@@ -46,8 +45,7 @@ describe('useConfig', () => {
 
     expect(result.current.config.bgHonor.wsg.honorPerWin).toBe(800);
     expect(result.current.config.bgHonor.wsg.honorPerLoss).toBe(300);
-    // Other BGs unchanged
-    expect(result.current.config.bgHonor.ab.honorPerWin).toBe(626);
+    expect(result.current.config.bgHonor.ab.honorPerWin).toBe(500);
   });
 
   it('updateBGHonor updates partial BG honor values', () => {
@@ -55,10 +53,10 @@ describe('useConfig', () => {
     const originalLoss = result.current.config.bgHonor.av.honorPerLoss;
 
     act(() => {
-      result.current.updateBGHonor('av', { honorPerWin: 700 });
+      result.current.updateBGHonor('av', { honorPerWin: 900 });
     });
 
-    expect(result.current.config.bgHonor.av.honorPerWin).toBe(700);
+    expect(result.current.config.bgHonor.av.honorPerWin).toBe(900);
     expect(result.current.config.bgHonor.av.honorPerLoss).toBe(originalLoss);
   });
 
@@ -75,7 +73,7 @@ describe('useConfig', () => {
       result.current.resetConfig();
     });
 
-    expect(result.current.config.winRate).toBe(0.5);
+    expect(result.current.config.winRate).toBe(0.3);
     expect(result.current.config.honorTarget).toBe(75000);
   });
 
@@ -105,7 +103,6 @@ describe('useConfig', () => {
       result.current.updateConfig({ winRate: 0.8 });
     });
 
-    // Re-render hook to simulate page refresh
     const { result: result2 } = renderHook(() => useConfig());
 
     expect(result2.current.config.winRate).toBe(0.8);
@@ -115,7 +112,7 @@ describe('useConfig', () => {
     const { result } = renderHook(() => useConfig());
 
     act(() => {
-      result.current.updateConfig({ winRate: 1.5 }); // Invalid: > 1
+      result.current.updateConfig({ winRate: 1.5 });
     });
 
     expect(result.current.validation.valid).toBe(false);

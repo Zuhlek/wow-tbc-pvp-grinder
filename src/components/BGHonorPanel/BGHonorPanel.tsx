@@ -1,5 +1,6 @@
 import type { BGHonorConfig, BGHonorValues, Phase } from '../../types';
 import { PHASE_CONFIG } from '../../types';
+import { NumberInput } from '../NumberInput';
 import './BGHonorPanel.css';
 
 interface BGHonorPanelProps {
@@ -51,23 +52,17 @@ export function BGHonorPanel({ bgHonor, phase, onBGHonorChange }: BGHonorPanelPr
                 {BG_SHORT_NAMES[bg]}
                 {!isActive && <span className="inactive-badge">TBC</span>}
               </span>
-              <input
-                type="number"
-                min="0"
+              <NumberInput
+                min={0}
                 value={bgHonor[bg].honorPerWin}
-                onChange={(e) =>
-                  onBGHonorChange(bg, { honorPerWin: Number(e.target.value) })
-                }
+                onChange={(v) => onBGHonorChange(bg, { honorPerWin: v })}
                 disabled={!isActive}
                 className="text-right"
               />
-              <input
-                type="number"
-                min="0"
+              <NumberInput
+                min={0}
                 value={bgHonor[bg].honorPerLoss}
-                onChange={(e) =>
-                  onBGHonorChange(bg, { honorPerLoss: Number(e.target.value) })
-                }
+                onChange={(v) => onBGHonorChange(bg, { honorPerLoss: v })}
                 disabled={!isActive}
                 className="text-right"
               />

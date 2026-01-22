@@ -4,20 +4,21 @@ interface DayRowProps {
   result: DayResult;
   enableTurnIns: boolean;
   isExpanded: boolean;
+  isToday: boolean;
   onClick: () => void;
 }
 
-export function DayRow({ result, enableTurnIns, isExpanded, onClick }: DayRowProps) {
+export function DayRow({ result, enableTurnIns, isExpanded, isToday, onClick }: DayRowProps) {
   const rowClasses = [
     'forecast-row',
     result.isGoalReachedDay ? 'goal-row' : '',
     result.overrideApplied ? 'override-row' : '',
     isExpanded ? 'expanded' : '',
+    isToday ? 'today-row' : '',
   ]
     .filter(Boolean)
     .join(' ');
 
-  // Format date to shorter form (Jan 18)
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -31,15 +32,15 @@ export function DayRow({ result, enableTurnIns, isExpanded, onClick }: DayRowPro
       </td>
       <td className="date-cell">{formatDate(result.date)}</td>
       <td className="text-right">{result.gamesPlanned.toFixed(1)}</td>
-      <td className="text-right">+{Math.round(result.expectedMarksGained)}</td>
-      <td className="text-right">{Math.round(result.marksAfterTurnIn)}</td>
+      <td className="text-right">+{result.expectedMarksGainedPerBG.toFixed(1)}</td>
+      <td className="text-right">{result.marksPerBGEnd.toFixed(1)}</td>
       {enableTurnIns && (
         <td className="text-right">
           {result.turnInSets > 0 ? result.turnInSets : '-'}
         </td>
       )}
       <td className="text-right honor-cell">
-        {result.honorEndOfDay.toLocaleString()}
+        {Math.round(result.honorEndOfDay).toLocaleString()}
         {result.isGoalReachedDay && <span className="goal-indicator">✓</span>}
       </td>
     </tr>

@@ -1,3 +1,4 @@
+import { NumberInput } from '../NumberInput';
 import './ConfigPanel.css';
 
 interface MultiplierInputProps {
@@ -25,13 +26,12 @@ export function MultiplierInput({
       <div className="form-group">
         <label htmlFor="bgHonorMult">BG Honor Multiplier</label>
         <div className="input-with-suffix">
-          <input
-            type="number"
+          <NumberInput
             id="bgHonorMult"
-            min="0.1"
-            step="0.1"
+            min={0.1}
+            step={0.1}
             value={bgHonorMult}
-            onChange={(e) => onBgHonorMultChange(Number(e.target.value))}
+            onChange={onBgHonorMultChange}
             className={hasError('bghonormult') ? 'input-error' : ''}
           />
           <span className="input-suffix">x</span>
@@ -41,31 +41,18 @@ export function MultiplierInput({
       <div className="form-group">
         <label htmlFor="questHonorMult">Quest/Turn-in Multiplier</label>
         <div className="input-with-suffix">
-          <input
-            type="number"
+          <NumberInput
             id="questHonorMult"
-            min="0.1"
-            step="0.1"
+            min={0.1}
+            step={0.1}
             value={questHonorMult}
-            onChange={(e) => onQuestHonorMultChange(Number(e.target.value))}
+            onChange={onQuestHonorMultChange}
             className={hasError('questhonormult') ? 'input-error' : ''}
           />
           <span className="input-suffix">x</span>
         </div>
         <small className="text-muted">Applies to daily quest and turn-in honor</small>
       </div>
-
-      {errors.filter((e) => e.includes('Mult')).length > 0 && (
-        <div className="error-messages">
-          {errors
-            .filter((e) => e.includes('Mult'))
-            .map((error, i) => (
-              <p key={i} className="error-message">
-                {error}
-              </p>
-            ))}
-        </div>
-      )}
     </div>
   );
 }

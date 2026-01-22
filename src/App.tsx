@@ -99,9 +99,9 @@ function App() {
           <div className="config-row">
             <StartingStateInput
               startingHonor={config.startingHonor}
-              startingMarks={config.startingMarks}
+              startingMarksPerBG={config.startingMarksPerBG}
               onStartingHonorChange={(v) => updateConfig({ startingHonor: v })}
-              onStartingMarksChange={(v) => updateConfig({ startingMarks: v })}
+              onStartingMarksPerBGChange={(v) => updateConfig({ startingMarksPerBG: v })}
               errors={validation.errors}
             />
 

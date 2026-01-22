@@ -4,7 +4,7 @@ import { PHASE_CONFIG } from '../types';
 /**
  * Calculate expected marks gained per game based on win rate.
  * Win: 3 marks, Loss: 1 mark
- * Formula: 1 + 2 * winRate
+ * Since we assume equal BG distribution, marks per game = marks per BG per game.
  */
 export function expectedMarksPerGame(winRate: number): number {
   return 1 + 2 * winRate;
@@ -12,7 +12,6 @@ export function expectedMarksPerGame(winRate: number): number {
 
 /**
  * Calculate expected honor for a single BG based on win rate.
- * Formula: winRate * honorPerWin + (1 - winRate) * honorPerLoss
  */
 export function expectedHonorForBG(bgHonor: BGHonorValues, winRate: number): number {
   return winRate * bgHonor.honorPerWin + (1 - winRate) * bgHonor.honorPerLoss;
@@ -20,9 +19,6 @@ export function expectedHonorForBG(bgHonor: BGHonorValues, winRate: number): num
 
 /**
  * Calculate mean expected honor per game across all active BGs.
- * Assumes equal probability of playing each BG type.
- * For Classic: averages WSG, AB, AV
- * For TBC: averages WSG, AB, AV, EotS
  */
 export function expectedHonorPerGame(config: AppConfig, winRate: number): number {
   const phaseConfig = PHASE_CONFIG[config.phase];
@@ -37,47 +33,48 @@ export function expectedHonorPerGame(config: AppConfig, winRate: number): number
 }
 
 /**
- * Calculate number of turn-in sets possible given current marks and reserve threshold.
- * Returns 0 if enableTurnIns is false or marks are below reserve.
+ * Calculate number of turn-in sets possible.
+ * A turn-in requires 1 mark from each BG type, so marksPerBG is the limiting factor.
  */
 export function computeTurnInSets(
-  marksBeforeTurnIn: number,
-  marksReserve: number,
-  marksPerTurnIn: number,
+  marksPerBG: number,
+  thresholdPerBG: number,
   enableTurnIns: boolean
 ): number {
   if (!enableTurnIns) {
     return 0;
   }
-  const excessMarks = Math.max(0, marksBeforeTurnIn - marksReserve);
-  return Math.floor(excessMarks / marksPerTurnIn);
+  const excessPerBG = Math.max(0, marksPerBG - thresholdPerBG);
+  return Math.floor(excessPerBG);
 }
 
 /**
  * Calculate the result for a single day.
+ * All marks values are per-BG (assuming equal distribution across BG types).
  */
 export function computeDayResult(
   dayIndex: number,
   date: string,
   honorStart: number,
-  marksStart: number,
+  marksPerBGStart: number,
   config: AppConfig,
   gamesPlanned: number,
   overrides?: DayOverrides
 ): DayResult {
-  const { numBGs, marksPerTurnIn } = PHASE_CONFIG[config.phase];
-  const marksReserve = config.marksThresholdPerBG * numBGs;
+  const { numBGs } = PHASE_CONFIG[config.phase];
 
-  // Marks calculation
-  const expectedMarksGained = gamesPlanned * expectedMarksPerGame(config.winRate);
-  const marksBeforeTurnIn = marksStart + expectedMarksGained;
+  // Marks calculation (per BG)
+  // Each game gives marks for one random BG, so on average marks per BG = total marks / numBGs
+  const totalMarksGained = gamesPlanned * expectedMarksPerGame(config.winRate);
+  const expectedMarksGainedPerBG = totalMarksGained / numBGs;
+  const marksPerBGBeforeTurnIn = marksPerBGStart + expectedMarksGainedPerBG;
+
   const turnInSets = computeTurnInSets(
-    marksBeforeTurnIn,
-    marksReserve,
-    marksPerTurnIn,
+    marksPerBGBeforeTurnIn,
+    config.marksThresholdPerBG,
     config.enableTurnIns
   );
-  let marksAfterTurnIn = marksBeforeTurnIn - turnInSets * marksPerTurnIn;
+  let marksPerBGEnd = marksPerBGBeforeTurnIn - turnInSets;
 
   // Honor calculation
   const honorFromBGs =
@@ -94,8 +91,8 @@ export function computeDayResult(
       honorEndOfDay = overrides.actualHonorEndOfDay;
       overrideApplied = true;
     }
-    if (overrides.actualMarksEndOfDay !== undefined) {
-      marksAfterTurnIn = overrides.actualMarksEndOfDay;
+    if (overrides.actualMarksPerBG !== undefined) {
+      marksPerBGEnd = overrides.actualMarksPerBG;
       overrideApplied = true;
     }
   }
@@ -105,45 +102,35 @@ export function computeDayResult(
     date,
     gamesPlanned,
     honorStart,
-    marksStart,
-    expectedMarksGained,
-    marksBeforeTurnIn,
-    marksReserve,
+    marksPerBGStart,
+    expectedMarksGainedPerBG,
+    marksPerBGBeforeTurnIn,
     turnInSets,
-    marksAfterTurnIn,
+    marksPerBGEnd,
     honorFromBGs,
     honorFromDailyQuest,
     honorFromTurnIns,
     totalHonorGained,
     honorEndOfDay,
     overrideApplied,
-    isGoalReachedDay: false, // Will be set by computeForecast
+    isGoalReachedDay: false,
   };
 }
 
-/**
- * Add days to a date string (ISO format).
- */
 function addDays(dateStr: string, days: number): string {
   const date = new Date(dateStr);
   date.setDate(date.getDate() + days);
   return date.toISOString().split('T')[0];
 }
 
-/**
- * Calculate the number of days between two date strings (inclusive).
- */
 function daysBetween(startDate: string, endDate: string): number {
   const start = new Date(startDate);
   const end = new Date(endDate);
   const diffTime = end.getTime() - start.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays + 1; // inclusive
+  return diffDays + 1;
 }
 
-/**
- * Compute the full forecast from startDate to endDate.
- */
 export function computeForecast(
   config: AppConfig,
   entries: DayEntry[],
@@ -153,10 +140,9 @@ export function computeForecast(
   const totalDays = daysBetween(config.startDate, config.endDate);
 
   let currentHonor = config.startingHonor;
-  let currentMarks = config.startingMarks;
+  let currentMarksPerBG = config.startingMarksPerBG;
   let goalReached = false;
 
-  // Create a map of overrides by dayIndex for quick lookup
   const overridesMap = new Map<number, DayOverrides>();
   for (const entry of entries) {
     if (entry.overrides) {
@@ -173,13 +159,12 @@ export function computeForecast(
       dayIndex,
       date,
       currentHonor,
-      currentMarks,
+      currentMarksPerBG,
       config,
       dailyGames,
       overrides
     );
 
-    // Check if goal is reached for the first time
     if (!goalReached && result.honorEndOfDay >= config.honorTarget) {
       result.isGoalReachedDay = true;
       goalReached = true;
@@ -187,17 +172,13 @@ export function computeForecast(
 
     results.push(result);
 
-    // Update state for next day
     currentHonor = result.honorEndOfDay;
-    currentMarks = result.marksAfterTurnIn;
+    currentMarksPerBG = result.marksPerBGEnd;
   }
 
   return { results, dailyGamesRequired: dailyGames };
 }
 
-/**
- * Find the first day where the honor target is reached.
- */
 export function findGoalReachedDay(
   results: DayResult[],
   honorTarget: number
@@ -210,28 +191,20 @@ export function findGoalReachedDay(
   return null;
 }
 
-/**
- * Calculate the required daily games to reach the honor target by the end date.
- * Uses binary search since the relationship is non-linear (more games → more marks → more turn-ins).
- */
 export function computeRequiredDailyGames(config: AppConfig): number {
-  // If starting honor already meets target, no games needed
   if (config.startingHonor >= config.honorTarget) {
     return 0;
   }
 
-  // Check if 0 games is sufficient (daily quest alone)
   const zeroGamesResult = computeForecast(config, [], 0);
   const lastDayZeroGames = zeroGamesResult.results[zeroGamesResult.results.length - 1];
   if (lastDayZeroGames.honorEndOfDay >= config.honorTarget) {
     return 0;
   }
 
-  // Binary search for minimum games needed
   let low = 0;
-  let high = 100; // Start with reasonable upper bound
+  let high = 100;
 
-  // Expand upper bound if needed
   let highResult = computeForecast(config, [], high);
   let lastDayHigh = highResult.results[highResult.results.length - 1];
   while (lastDayHigh.honorEndOfDay < config.honorTarget && high < 10000) {
@@ -240,7 +213,6 @@ export function computeRequiredDailyGames(config: AppConfig): number {
     lastDayHigh = highResult.results[highResult.results.length - 1];
   }
 
-  // Binary search
   while (high - low > 0.1) {
     const mid = (low + high) / 2;
     const midResult = computeForecast(config, [], mid);
@@ -253,7 +225,5 @@ export function computeRequiredDailyGames(config: AppConfig): number {
     }
   }
 
-  // Round up to 1 decimal place to ensure we reach the target
-  // Binary search converges to within 0.1, so ceiling ensures we always hit the goal
   return Math.ceil(high * 10) / 10;
 }

@@ -7,17 +7,10 @@ function getToday(): string {
   return new Date().toISOString().split('T')[0];
 }
 
-/**
- * Default BG honor values based on observed data:
- * WSG - Win: ~785, Loss: ~271
- * AB  - Win: ~626, Loss: ~318
- * AV  - Win: ~687, Loss: ~374
- * EotS (TBC) - Estimated similar to other BGs
- */
 export const DEFAULT_BG_HONOR: BGHonorConfig = {
-  wsg: { honorPerWin: 785, honorPerLoss: 271 },
-  ab: { honorPerWin: 626, honorPerLoss: 318 },
-  av: { honorPerWin: 687, honorPerLoss: 374 },
+  wsg: { honorPerWin: 600, honorPerLoss: 150 },
+  ab: { honorPerWin: 500, honorPerLoss: 200 },
+  av: { honorPerWin: 700, honorPerLoss: 350 },
   eots: { honorPerWin: 700, honorPerLoss: 350 },
 };
 
@@ -31,17 +24,17 @@ export const DEFAULT_CONFIG: AppConfig = {
   phase: 'classic',
   bgHonor: DEFAULT_BG_HONOR,
 
-  dailyQuestHonor: 419,
-  turnInHonor: 314,
+  dailyQuestHonor: 500,
+  turnInHonor: 200,
 
-  winRate: 0.5,
-  marksThresholdPerBG: 50,
+  winRate: 0.3,
+  marksThresholdPerBG: 30,
   enableTurnIns: true,
-  bgHonorMult: 1.0,
-  questHonorMult: 1.0,
+  bgHonorMult: 2.5,
+  questHonorMult: 2.5,
   honorTarget: 75000,
-  startingHonor: 0,
-  startingMarks: 0,
+  startingHonor: 20000,
+  startingMarksPerBG: 40,
 };
 
 /**

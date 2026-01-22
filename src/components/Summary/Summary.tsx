@@ -1,5 +1,4 @@
 import type { AppConfig, DayResult } from '../../types';
-import { PHASE_CONFIG } from '../../types';
 import './Summary.css';
 
 interface SummaryProps {
@@ -24,10 +23,6 @@ export function Summary({
     100,
     (config.startingHonor / config.honorTarget) * 100
   );
-
-  // Calculate marks reserve based on phase
-  const { numBGs } = PHASE_CONFIG[config.phase];
-  const marksReserve = config.marksThresholdPerBG * numBGs;
 
   // Check if goal is after end date
   const goalAfterDeadline = goalDay && goalDay.date > config.endDate;
@@ -81,12 +76,12 @@ export function Summary({
         {/* Marks Info */}
         <div className="info-row">
           <span className="info-label">Starting Marks</span>
-          <span className="info-value">{config.startingMarks}</span>
+          <span className="info-value">{config.startingMarksPerBG} per BG</span>
         </div>
         <div className="info-row">
           <span className="info-label">Marks Reserve</span>
           <span className="info-value text-muted">
-            {marksReserve} ({config.marksThresholdPerBG} × {numBGs} BGs)
+            {config.marksThresholdPerBG} per BG
           </span>
         </div>
 

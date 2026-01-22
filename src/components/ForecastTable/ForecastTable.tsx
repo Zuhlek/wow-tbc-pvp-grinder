@@ -11,6 +11,10 @@ interface ForecastTableProps {
   onClearOverride: (dayIndex: number) => void;
 }
 
+function getToday(): string {
+  return new Date().toISOString().split('T')[0];
+}
+
 export function ForecastTable({
   results,
   enableTurnIns,
@@ -18,6 +22,7 @@ export function ForecastTable({
   onClearOverride,
 }: ForecastTableProps) {
   const [expandedDay, setExpandedDay] = useState<number | null>(null);
+  const today = getToday();
 
   const handleRowClick = (dayIndex: number) => {
     setExpandedDay(expandedDay === dayIndex ? null : dayIndex);
@@ -70,6 +75,7 @@ export function ForecastTable({
                 result={result}
                 enableTurnIns={enableTurnIns}
                 isExpanded={expandedDay === result.dayIndex}
+                isToday={result.date === today}
                 onClick={() => handleRowClick(result.dayIndex)}
               />
             ))}

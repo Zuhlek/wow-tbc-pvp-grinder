@@ -57,7 +57,7 @@ export interface AppConfig {
 
   // Starting state (Day 0)
   startingHonor: number;
-  startingMarks: number; // unified pool
+  startingMarksPerBG: number; // marks per BG type (assumes equal distribution)
 }
 
 // Computed value (not stored, derived from config)
@@ -70,7 +70,7 @@ export interface ComputedPlan {
 // User overrides for a specific day
 export interface DayOverrides {
   actualHonorEndOfDay?: number;
-  actualMarksEndOfDay?: number; // unified pool
+  actualMarksPerBG?: number; // marks per BG type
 }
 
 // User entry for a day (with potential overrides)
@@ -88,14 +88,13 @@ export interface DayResult {
   // Inputs for this day
   gamesPlanned: number;
   honorStart: number;
-  marksStart: number;
+  marksPerBGStart: number;
 
-  // Marks calculation
-  expectedMarksGained: number;
-  marksBeforeTurnIn: number;
-  marksReserve: number; // threshold × numBGs
+  // Marks calculation (all per BG)
+  expectedMarksGainedPerBG: number;
+  marksPerBGBeforeTurnIn: number;
   turnInSets: number; // 0 if enableTurnIns = false
-  marksAfterTurnIn: number;
+  marksPerBGEnd: number;
 
   // Honor calculation
   honorFromBGs: number;

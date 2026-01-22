@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { DayResult, DayOverrides } from '../../types';
+import { NumberInput } from '../NumberInput';
 
 interface OverrideInputsProps {
   result: DayResult;
@@ -14,21 +15,21 @@ export function OverrideInputs({
   onClear,
   onCancel,
 }: OverrideInputsProps) {
-  const [honor, setHonor] = useState<string>(
-    result.overrideApplied ? result.honorEndOfDay.toString() : ''
+  const [honor, setHonor] = useState<number | null>(
+    result.overrideApplied ? result.honorEndOfDay : null
   );
-  const [marks, setMarks] = useState<string>(
-    result.overrideApplied ? result.marksAfterTurnIn.toString() : ''
+  const [marks, setMarks] = useState<number | null>(
+    result.overrideApplied ? result.marksPerBGEnd : null
   );
 
   const handleSave = () => {
     const overrides: DayOverrides = {};
 
-    if (honor.trim() !== '') {
-      overrides.actualHonorEndOfDay = Number(honor);
+    if (honor !== null) {
+      overrides.actualHonorEndOfDay = honor;
     }
-    if (marks.trim() !== '') {
-      overrides.actualMarksEndOfDay = Number(marks);
+    if (marks !== null) {
+      overrides.actualMarksPerBG = marks;
     }
 
     if (Object.keys(overrides).length > 0) {
@@ -40,7 +41,6 @@ export function OverrideInputs({
     onClear(result.dayIndex);
   };
 
-  // Format date for display
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', {
@@ -59,43 +59,39 @@ export function OverrideInputs({
 
       <div className="override-form">
         <div className="override-field">
-          <label htmlFor="override-honor">Actual Honor (end of day)</label>
-          <input
-            type="number"
+          <label htmlFor="override-honor">Actual Honor</label>
+          <NumberInput
             id="override-honor"
-            value={honor}
-            onChange={(e) => setHonor(e.target.value)}
-            placeholder={result.honorEndOfDay.toString()}
-            min="0"
+            value={honor ?? Math.round(result.honorEndOfDay)}
+            onChange={setHonor}
+            min={0}
           />
           <small className="text-muted">
-            Forecast: {result.honorEndOfDay.toLocaleString()}
+            Forecast: {Math.round(result.honorEndOfDay).toLocaleString()}
           </small>
         </div>
 
         <div className="override-field">
-          <label htmlFor="override-marks">Actual Marks (end of day)</label>
-          <input
-            type="number"
+          <label htmlFor="override-marks">Actual Marks per BG</label>
+          <NumberInput
             id="override-marks"
-            value={marks}
-            onChange={(e) => setMarks(e.target.value)}
-            placeholder={Math.round(result.marksAfterTurnIn).toString()}
-            min="0"
+            value={marks ?? Math.round(result.marksPerBGEnd)}
+            onChange={setMarks}
+            min={0}
           />
           <small className="text-muted">
-            Forecast: {Math.round(result.marksAfterTurnIn)}
+            Forecast: {result.marksPerBGEnd.toFixed(1)}
           </small>
         </div>
       </div>
 
       <div className="override-actions">
         <button type="button" onClick={handleSave}>
-          Save Override
+          Save
         </button>
         {result.overrideApplied && (
           <button type="button" className="danger" onClick={handleClear}>
-            Clear Override
+            Clear
           </button>
         )}
         <button type="button" className="secondary" onClick={onCancel}>

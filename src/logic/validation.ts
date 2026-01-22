@@ -45,8 +45,8 @@ export function validateConfig(config: AppConfig): ValidationResult {
   if (config.startingHonor < 0) {
     errors.push('startingHonor must be >= 0');
   }
-  if (config.startingMarks < 0) {
-    errors.push('startingMarks must be >= 0');
+  if (config.startingMarksPerBG < 0) {
+    errors.push('startingMarksPerBG must be >= 0');
   }
 
   // Target validation
